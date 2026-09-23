@@ -58,6 +58,8 @@ where b_u solves Φ(−b) + e^{−ub+u²/2}Φ(b − u) = q. The extremal sequenc
 
 Interpretation. A naive Taylor expansion suggests an O(x) effect, driven by f′(1) − f′(−1). The x^{1/2} rate comes from the boundary layer. Symmetry removes the effect entirely.
 
+**Remark (one-sided transfer)** [proved]. The map W ↦ (W − t)/D^{1/2} preserves log-concavity, so the sharp one-sided transfer is exactly t + D^{1/2}c_{p,q} for every D, not only asymptotically. At the order-statistic level for K = 110 and q = 0.95 per side, c = −0.011, which is negligible. The gain from deconvolution therefore comes from two-sided calibration, where noise pushes mass out through both ends at once. The small-noise law is the one-sided effect seen locally at each endpoint.
+
 **Critical noise level** [numerical]. R_{q,q}(x) = 1 at x*(q) = 0.034, 0.017, 0.0062 and 0.0012 for q = 0.80, 0.85, 0.90 and 0.95. Below x*(q) the noisy threshold must be widened, by at most 0.37%, 0.17%, 0.063% and 0.012% respectively. Above it the threshold may be shrunk. [Figure: R_{q,q}(x) against x on a log scale, four q, with the symmetric bound 1.]
 
 **Corollary 6** [numerical; depends on Theorem 5]. A finite-sample slack p − q ≥ 8 × 10⁻⁴ removes the small-noise widening at q = 0.9. The order-statistic slack at K = 110 (0.0036) exceeds this.
