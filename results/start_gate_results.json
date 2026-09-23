@@ -1,0 +1,252 @@
+{
+ "two_world": {
+  "TV_by_m": [
+   {
+    "m": 1,
+    "TV": "0"
+   },
+   {
+    "m": 2,
+    "TV": "0"
+   },
+   {
+    "m": 3,
+    "TV": "0"
+   },
+   {
+    "m": 4,
+    "TV": "96/4753"
+   }
+  ],
+  "min_expected_width_pp_A_only": 12.8,
+  "min_expected_width_pp_both_worlds": 14.0067,
+  "oracle_B_width_pp": 1.6,
+  "oracle_B_coverage": 0.9603841536614646
+ },
+ "design_comparisons": [
+  {
+   "designs": [
+    [
+     2,
+     4
+    ]
+   ],
+   "rank": 15,
+   "predicted_rank": 15,
+   "identified_moment_orders": [
+    1,
+    2
+   ],
+   "max_mass_gap_interval_.4_.6": 0.9642857142857143
+  },
+  {
+   "designs": [
+    [
+     4,
+     2
+    ]
+   ],
+   "rank": 15,
+   "predicted_rank": 15,
+   "identified_moment_orders": [
+    1,
+    2
+   ],
+   "max_mass_gap_interval_.4_.6": 0.8889989505247334
+  },
+  {
+   "designs": [
+    [
+     3,
+     2
+    ]
+   ],
+   "rank": 10,
+   "predicted_rank": 10,
+   "identified_moment_orders": [
+    1,
+    2
+   ],
+   "max_mass_gap_interval_.4_.6": 0.9642857142857141
+  },
+  {
+   "designs": [
+    [
+     2,
+     3
+    ]
+   ],
+   "rank": 10,
+   "predicted_rank": 10,
+   "identified_moment_orders": [
+    1,
+    2
+   ],
+   "max_mass_gap_interval_.4_.6": 0.9642857142857137
+  },
+  {
+   "designs": [
+    [
+     6,
+     1
+    ]
+   ],
+   "rank": 7,
+   "predicted_rank": 7,
+   "identified_moment_orders": [
+    1
+   ],
+   "max_mass_gap_interval_.4_.6": 0.9999999999999998
+  },
+  {
+   "designs": [
+    [
+     6,
+     3
+    ]
+   ],
+   "rank": 84,
+   "predicted_rank": 84,
+   "identified_moment_orders": [
+    1,
+    2,
+    3
+   ],
+   "max_mass_gap_interval_.4_.6": 0.5191919350216702
+  },
+  {
+   "designs": [
+    [
+     5,
+     4
+    ]
+   ],
+   "rank": 126,
+   "predicted_rank": 126,
+   "identified_moment_orders": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "max_mass_gap_interval_.4_.6": 0.629032258064516
+  },
+  {
+   "designs": [
+    [
+     2,
+     4
+    ],
+    [
+     4,
+     2
+    ]
+   ],
+   "rank": 24,
+   "predicted_rank": 24,
+   "identified_moment_orders": [
+    1,
+    2,
+    3,
+    4
+   ],
+   "max_mass_gap_interval_.4_.6": 0.86567985782999
+  },
+  {
+   "designs": [
+    [
+     3,
+     2
+    ],
+    [
+     2,
+     3
+    ]
+   ],
+   "rank": 14,
+   "predicted_rank": 14,
+   "identified_moment_orders": [
+    1,
+    2,
+    3
+   ],
+   "max_mass_gap_interval_.4_.6": 0.9519195311941684
+  },
+  {
+   "designs": [
+    [
+     2,
+     4
+    ],
+    [
+     6,
+     1
+    ]
+   ],
+   "rank": 19,
+   "predicted_rank": 19,
+   "identified_moment_orders": [
+    1,
+    2,
+    3
+   ],
+   "max_mass_gap_interval_.4_.6": 0.9472111553784862
+  },
+  {
+   "designs": [
+    [
+     6,
+     3
+    ],
+    [
+     5,
+     4
+    ]
+   ],
+   "rank": 154,
+   "predicted_rank": 154,
+   "identified_moment_orders": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+   ],
+   "max_mass_gap_interval_.4_.6": 0.4497174089959581
+  }
+ ],
+ "continuous_extension": [
+  {
+   "epsilon": 0,
+   "lower_bound_A_only": 0.064,
+   "known_B_width": 0.008,
+   "R2_of_exact_mean": 0.8928571428571428
+  },
+  {
+   "epsilon": 0.001,
+   "lower_bound_A_only": 0.062400000000000004,
+   "known_B_width": 0.01,
+   "R2_of_exact_mean": 0.8928521554408059
+  },
+  {
+   "epsilon": 0.002,
+   "lower_bound_A_only": 0.0608,
+   "known_B_width": 0.012,
+   "R2_of_exact_mean": 0.8928371935261
+  },
+  {
+   "epsilon": 0.005,
+   "lower_bound_A_only": 0.05600000000000001,
+   "known_B_width": 0.018000000000000002,
+   "R2_of_exact_mean": 0.8927324741620205
+  },
+  {
+   "epsilon": 0.01,
+   "lower_bound_A_only": 0.048,
+   "known_B_width": 0.028,
+   "R2_of_exact_mean": 0.8923586768774808
+  }
+ ]
+}
