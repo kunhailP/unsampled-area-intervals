@@ -110,3 +110,14 @@ def test_latent_laws_match_e12_draws():
         assert np.max(np.abs(emp - cdf(k, grid))) < 0.004, k
     m = matched_scales('normal', [0, 0, 0], [-1, -2, -3], [1, 2, 3])
     assert abs(m['lam_pac'] - 1.6448536269514722) < 1e-9 and m['achieved_reliability'] == 1
+
+
+def test_small_noise_upper_bound_all_x():
+    """Theorem 5: R_{q,q}(x) <= 1 + c_q sqrt(x); grid values of R are lower bounds of R."""
+    from uai.extremal import R_grid, one_sided_constant
+    cq = one_sided_constant(.9, .9)
+    assert abs(cq - 0.0190618) < 1e-6
+    betas = np.concatenate([[0], np.geomspace(.05, 3000, 30)]); ells = np.geomspace(1e-3, 4, 30)
+    for x in (1e-5, 1e-3, 1e-2):
+        R, _ = R_grid(.9, .9, x, betas, ells)
+        assert R <= 1 + cq * np.sqrt(x) + 1e-12

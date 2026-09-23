@@ -13,8 +13,8 @@ For that family both P(W + e <= c) and P(|W| <= s) have closed forms (below), so
 is needed. Everything is evaluated in log space to stay finite for steep beta.
 """
 import numpy as np
-from scipy.optimize import NonlinearConstraint, brentq, differential_evolution, minimize
-from scipy.special import log_ndtr, ndtr
+from scipy.optimize import NonlinearConstraint, brentq, differential_evolution, minimize, minimize_scalar
+from scipy.special import erfinv, log_ndtr, ndtr
 
 _BETA0 = 1e-7
 
@@ -282,3 +282,50 @@ def shape_values(p, q, beta, ells, xs, w=None, m=256, iters=55):
                 lo_, hi_ = np.where(mass < q, mid, lo_), np.where(mass < q, hi_, mid)
             vals[ok] = np.maximum(vals[ok], hi_)
     return vals
+
+
+# ---------------------------------------------------------------------------------------------
+# Scaled one-sided problem c_{p,q} = sup{ F_Y^{-1}(q) : Y log-concave, P(Y + Z <= 0) >= p }.
+# Lemma A: the sup is over exponential tails Y = b - E, E ~ Exp(u). Theorem 5: for every x,
+# R_{q,q}(x) <= 1 + c_q sqrt(x); Theorem 5+: R_{p,q}(x) <= 1 + C_{p,q} sqrt(x).
+# ---------------------------------------------------------------------------------------------
+
+def exp_tail_mass(b, u):
+    """P(b - E + Z <= 0) for E ~ Exp(u) independent of Z ~ N(0, 1)."""
+    return ndtr(-b) + np.exp(-u * b + u * u / 2 + log_ndtr(b - u))
+
+
+def exp_tail_value(p, q, u):
+    """q-quantile of the exponential tail of rate u that meets the constraint at level p."""
+    b = brentq(lambda b: exp_tail_mass(b, u) - p, -60, 60 / u + 60, xtol=1e-14)
+    return b - np.log(1 / q) / u
+
+
+def one_sided_constant(p, q, log_u=np.linspace(np.log(1e-3), np.log(200), 160)):
+    """c_{p,q} by Lemma A: a scan over the rate u, polished around the best grid point.
+    The u -> infinity end is the point mass, value -Phi^{-1}(p)."""
+    if p >= 1:
+        return -np.inf
+    vals = np.array([exp_tail_value(p, q, np.exp(l)) for l in log_u])
+    i = int(np.argmax(vals))
+    best = max(vals[i], -np.sqrt(2) * erfinv(2 * p - 1))
+    if 0 < i < len(log_u) - 1:
+        r = minimize_scalar(lambda l: -exp_tail_value(p, q, np.exp(l)),
+                            bounds=(log_u[i - 1], log_u[i + 1]), method='bounded',
+                            options={'xatol': 1e-10})
+        best = max(best, -r.fun)
+    return best
+
+
+def split_constant(p, q, n=21):
+    """C_{p,q} of Theorem 5+: worst split of the noisy failure 1 - p between the two ends,
+    best split of the latent failure 1 - q. Symmetric in the two ends."""
+    worst = -np.inf
+    for a_r in np.linspace(0, (1 - p) / 2, n):
+        a_l = 1 - p - a_r
+        f = lambda b_r: max(one_sided_constant(1 - a_l, 1 - (1 - q - b_r)),
+                            one_sided_constant(1 - a_r, 1 - b_r))
+        r = minimize_scalar(f, bounds=(a_r + 1e-12, a_r + (p - q) - 1e-12), method='bounded',
+                            options={'xatol': 1e-9})
+        worst = max(worst, r.fun)
+    return worst
