@@ -83,7 +83,8 @@ def test_asymmetric_small_noise_counterexample():
 def test_shrink_table_small_x_not_one():
     from uai.procedures import ShrinkTable
     t = ShrinkTable('0.1')
-    assert t(1e-5) == t.r[0] >= 1
+    assert t(1e-5) == t.r.max() > 1              # left of the peak: overall maximum
+    assert t(0.003) >= t(0.004) >= t(0.2)
 
 
 def test_union_bound_baseline():
