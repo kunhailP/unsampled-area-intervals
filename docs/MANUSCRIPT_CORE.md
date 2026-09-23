@@ -93,7 +93,9 @@ Table 1 (E20). Reliability / mean width.
 - The Fay–Herriot tolerance interval is shortest, but it relies on normality and misses the target under the truncated Laplace law.
 - The width HetLDC pays over it, 12–18%, is the price of a guarantee that holds for every log-concave law.
 
-[apipop finite-population study: E21, to be added.]
+apipop finite population (E21). There are 325 school districts: 110 are used for training and 110 for calibration, with n = 2 or 3 schools sampled per district, and coverage is the share of the remaining 105 districts covered. Design variances are estimated with 1–2 degrees of freedom and plugged in as known by every rule.
+- Reliability over four conditions (120 replications each): HetLDC 0.942–0.992, mean-variance LDC 0.983–1.000, Fay–Herriot tolerance 0.908–0.992 (below target in two conditions).
+- HetLDC is 0.8–5.2% shorter than the mean-variance rule and 10–16% longer than Fay–Herriot.
 
 ## 6. Limits
 
