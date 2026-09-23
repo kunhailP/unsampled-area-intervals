@@ -15,26 +15,39 @@ _FEASIBLE_X = 0.3696          # above this, P(|e| <= t) < .9: data contradict th
 
 
 class ShrinkTable:
-    """Conservative lookup of r_alpha(x) from results/r_table.json.
+    """Conservative lookup of the shrink function r(x) = R_{1-a,1-a}(x).
 
-    r is nonincreasing in x on the table range (checked on the grid, not proved), so the
-    value at the grid point at or below x is >= r(x) there. Below the first grid point the
-    first table value is returned, not 1: for asymmetric log-concave W, r can exceed 1 at
-    small x (explicit example in tests/test_core.py). All table values are numerical search
-    results, not certified upper bounds; see docs/FINDINGS.md C10, C25.
+    alpha = '0.1' uses the exact two-dimensional reduction (results/r_exact_p0.9_q0.9.csv, E16,
+    plus the fine small-x grid of E19). r rises for small x (r > 1: widen) to a peak near
+    x = .0023 and then decreases. At or right of the peak the value at the grid point at or
+    below x is >= r(x); left of it the overall maximum is returned. Other alphas use the E04
+    differential-evolution table (same lookup, first value below the grid). Table values are
+    converged grid maxima, not certified upper bounds (docs/THEORY_NOTE.md).
     """
 
     def __init__(self, alpha='0.1', path=ROOT / 'results' / 'r_table.json'):
-        tab = json.load(open(path))[alpha]
-        self.x = np.array(sorted(float(k) for k in tab))
-        self.r = np.array([tab[str(k)] for k in self.x])
+        if alpha == '0.1' and (ROOT / 'results' / 'r_exact_p0.9_q0.9.csv').exists():
+            import pandas as pd
+            d = pd.read_csv(ROOT / 'results' / 'r_exact_p0.9_q0.9.csv')[['x', 'R']]
+            b = ROOT / 'results' / 'boundary_map.csv'
+            if b.exists():
+                e = pd.read_csv(b)
+                d = pd.concat([d, e[np.isclose(e.q, 0.9)][['x', 'R']]])
+            d = d[np.isfinite(d.R)].sort_values('x')
+            self.x, self.r = d.x.values, d.R.values
+        else:
+            tab = json.load(open(path))[alpha]
+            self.x = np.array(sorted(float(k) for k in tab))
+            self.r = np.array([tab[str(k)] for k in self.x])
+        self.peak = int(np.argmax(self.r))
 
     def __call__(self, x):
         if x >= _FEASIBLE_X:        # alpha = .10 only; the data contradict the noise level
             return 1.0
-        if x < self.x[0]:
-            return float(self.r[0])
-        return float(self.r[np.searchsorted(self.x, x, side='right') - 1])
+        i = np.searchsorted(self.x, x, side='right') - 1
+        if i <= self.peak:
+            return float(self.r[self.peak])
+        return float(self.r[i])
 
 
 def conformal_threshold(scores, k):
@@ -111,3 +124,73 @@ def union_bound_halfwidth(t, D_up, p, q):
     if p <= q:
         return np.inf
     return t + np.sqrt(D_up) * stats.norm.ppf(1 - (p - q) / 2)
+
+
+def clopper_pearson_lower(n_success, n, delta):
+    """One-sided lower confidence bound for a success probability. By Hoeffding (1956) it is
+    also valid for the mean success probability of independent, non-identical Bernoulli trials
+    (a Poisson-binomial count is more concentrated than the binomial with the same mean)."""
+    return 0.0 if n_success == 0 else float(stats.beta.ppf(delta, n_success, n - n_success + 1))
+
+
+def shrink_mix(p, q, xs, wts=None, betas=None, ells=None, m=100):
+    """R_{p,q} for heterogeneous known noise (average kernel over scaled variances xs):
+    grid over (slope, length) with the exact endpoint reduction, then a local polish.
+    A converging feasible value, not a certified upper bound (docs/THEORY_NOTE.md)."""
+    from scipy.optimize import minimize
+    from uai.extremal import shape_values
+    betas = np.r_[0.0, np.exp(np.linspace(np.log(1e-2), np.log(1e3), 16))] if betas is None else betas
+    ells = np.exp(np.linspace(np.log(1e-3), np.log(20), 30)) if ells is None else ells
+    best, arg = -np.inf, None
+    for beta in betas:
+        v = shape_values(p, q, beta, ells, xs, wts, m=m)
+        i = int(np.argmax(v))
+        if v[i] > best:
+            best, arg = v[i], (beta, ells[i])
+    if arg is None:
+        return np.inf                    # no log-concave law fits: fall back to no guarantee
+    f = lambda z: -shape_values(p, q, np.exp(z[0]), [np.exp(z[1])], xs, wts, m=m)[0]
+    r = minimize(f, [np.log(max(arg[0], 1e-3)), np.log(arg[1])], method='Nelder-Mead',
+                 options={'xatol': 1e-6, 'fatol': 1e-10, 'maxiter': 60})
+    return max(best, -r.fun) if np.isfinite(r.fun) else best
+
+
+def quantised_kernel(xs, n_pts=32):
+    """Compress scaled variances xs to n_pts group means (weights = group sizes) and return them
+    with eps >= sup_w |gbar(w) - gbar_quantised(w)|, so that a constraint int gbar dG >= p can be
+    replaced by the valid int gbar_q dG >= p - eps. The sup is taken on a grid of spacing h and
+    padded by M h^2 / 8, M a bound on the second derivative of the difference (the maximum of a
+    C^2 function between two grid points exceeds the larger endpoint value by at most M h^2/8)."""
+    from scipy.special import ndtr
+    xs = np.sort(np.asarray(xs, dtype=float))
+    if len(xs) <= n_pts:
+        return xs, 0.0
+    groups = np.array_split(xs, n_pts)
+    pts = np.array([np.mean(g) for g in groups]); wts = np.array([len(g) for g in groups]) / len(xs)
+    span = 1 + 8 * np.sqrt(xs.max())
+    wg = np.arange(-span, span + 1e-3, 1e-3)          # beyond +-span both kernels are < 1e-15
+    kern = lambda x: ndtr((1 - wg[:, None]) / np.sqrt(x)) - ndtr((-1 - wg[:, None]) / np.sqrt(x))
+    diff = np.abs(kern(xs).mean(1) - kern(pts) @ wts)
+    M = 4 * 0.2420 / xs.min()                         # |d^2/dw^2 Phi((c - w)/s)| <= phi(1) / s^2
+    return (pts, wts), float(diff.max() + M * 1e-6 / 8)
+
+
+def hetldc_halfwidth(V, D, k=None, q=0.90, delta=0.05, n_pts=32):
+    """Heterogeneous-noise LDC with an order-statistic threshold T = |V|_(k).
+
+    Let Fbar be the average CDF of |V_i| (independent, non-identical because D_i differ). For
+    t_p = Fbar^{-1}(p), {Fbar(T) < p} = {#{|V_i| <= t_p} >= k}; the count is Poisson-binomial
+    with mean K p, so by Hoeffding (1956) its upper tail at k >= K p + 1 is at most the
+    Bin(K, p) tail. Hence p_k = Beta(k, K + 1 - k) delta-quantile still gives
+    P(Fbar(T) >= p_k) >= 1 - delta. On that event int gbar_T dG >= p_k with gbar_T the average
+    Gaussian kernel at x_i = D_i / T^2, and s = T * R_{p_k - eps, q}(kernel) covers the latent
+    target with probability >= q for every log-concave G (eps: kernel quantisation error).
+    Assumes W_i iid log-concave, e_i ~ N(0, D_i) independent of W with D_i known."""
+    V, D = np.asarray(V), np.asarray(D)
+    K = len(V)
+    k = pac_rank(K, q, delta) if k is None else k
+    p_k = float(stats.beta.ppf(delta, k, K + 1 - k))
+    assert k >= K * p_k + 1, 'Hoeffding comparison needs k >= K p + 1'
+    T = np.sort(np.abs(V))[k - 1]
+    (pts, wts), eps = quantised_kernel(D / T**2, n_pts)
+    return T * shrink_mix(p_k - eps, q, pts, wts=wts)
