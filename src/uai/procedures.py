@@ -164,14 +164,17 @@ def quantised_kernel(xs, n_pts=32):
     from scipy.special import ndtr
     xs = np.sort(np.asarray(xs, dtype=float))
     if len(xs) <= n_pts:
-        return xs, 0.0
-    groups = np.array_split(xs, n_pts)
+        return (xs, np.full(len(xs), 1 / len(xs))), 0.0
+    tiny = xs < 1e-3                                  # near-indicator kernels: kept exactly
+    groups = [xs[i:i + 1] for i in np.where(tiny)[0]] + \
+        [g for g in np.array_split(xs[~tiny], max(n_pts - tiny.sum(), 1)) if len(g)]
     pts = np.array([np.mean(g) for g in groups]); wts = np.array([len(g) for g in groups]) / len(xs)
     span = 1 + 8 * np.sqrt(xs.max())
     wg = np.arange(-span, span + 1e-3, 1e-3)          # beyond +-span both kernels are < 1e-15
     kern = lambda x: ndtr((1 - wg[:, None]) / np.sqrt(x)) - ndtr((-1 - wg[:, None]) / np.sqrt(x))
     diff = np.abs(kern(xs).mean(1) - kern(pts) @ wts)
-    M = 4 * 0.2420 / xs.min()                         # |d^2/dw^2 Phi((c - w)/s)| <= phi(1) / s^2
+    # |g_x''| <= 2 phi(1) / x; a group's error has second derivative <= 4 phi(1) / min(group)
+    M = sum(w * 4 * 0.2420 / g.min() for g, w in zip(groups, wts) if len(g) > 1)
     return (pts, wts), float(diff.max() + M * 1e-6 / 8)
 
 
