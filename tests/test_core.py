@@ -95,3 +95,17 @@ def test_union_bound_baseline():
     t = np.quantile(np.abs(V), 0.95); s = union_bound_halfwidth(t, D, 0.95, 0.90)
     assert np.mean(np.abs(W) <= s) >= 0.90
     assert union_bound_halfwidth(1, D, 0.9, 0.9) == np.inf
+
+
+def test_latent_laws_match_e12_draws():
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'experiments'))
+    from e12_conditional_synth import SHAPES, draw
+    from uai.latent_laws import cdf, matched_scales
+    rng = np.random.default_rng(3)
+    grid = np.linspace(-3, 3, 61)
+    for k in SHAPES:
+        w = np.sort(draw(k, 400000, rng))
+        emp = np.searchsorted(w, grid, side='right') / w.size
+        assert np.max(np.abs(emp - cdf(k, grid))) < 0.004, k
+    m = matched_scales('normal', [0, 0, 0], [-1, -2, -3], [1, 2, 3])
+    assert abs(m['lam_pac'] - 1.6448536269514722) < 1e-9 and m['achieved_reliability'] == 1
