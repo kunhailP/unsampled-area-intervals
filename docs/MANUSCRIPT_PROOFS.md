@@ -29,37 +29,60 @@ Write W_c = c + Y, where Y has a fixed log-affine density on [0, ℓ].
 
 With heterogeneous noise the first map becomes an average of log-concave functions. It need not be log-concave, and the feasible set can be a union of intervals S. Quasi-convexity on the whole line still gives max_S Q ≤ max{Q(inf S), Q(sup S)}, and both of these points belong to the closure of S.
 
-## A.4 Theorem 4 (small-noise lower bound) [complete for the one-sided construction; transfer sketch]
+## A.4 Lemmas A and B (the one-sided problem) [complete]
 
-One-sided family. Let Y = b − E with E exponential with rate u > 0, and let Z ~ N(0, 1) be independent of E. Then
+Exponential tails. Let Y_{u,b} = b − E, where E is exponential with rate u > 0 and independent of Z ~ N(0, 1). Then
 
-  pr(Y + Z ≤ 0) = pr(E ≥ b + Z) = Φ(−b) + E{e^{−u(b+Z)}1(Z > −b)} = Φ(−b) + e^{−ub+u²/2}Φ(b−u).
+  κ_u(b) := pr(Y_{u,b} + Z ≤ 0) = pr(E ≥ b + Z) = Φ(−b) + e^{−ub+u²/2}Φ(b − u).
 
-Its derivative in b is −u e^{−ub+u²/2}Φ(b−u) < 0. So for each u there is a unique b_u at which this equals q. For Y, pr(Y ≤ y) = e^{−u(b−y)}, so F_Y⁻¹(q) = b − log(1/q)/u. Substituting the constraint gives F_Y⁻¹(q) = u⁻¹ log{e^{u²/2}Φ(b_u − u) + e^{ub_u}Φ(−b_u)}.
+Its derivative in b is −u e^{−ub+u²/2}Φ(b − u) < 0. So κ_u(b) = p has a unique root b_u(p), which is continuous in p. Since pr(Y_{u,b} ≤ y) = min(e^{−u(b−y)}, 1), the q-quantile is b − log(1/q)/u. Write v_u(p, q) = b_u(p) − log(1/q)/u.
 
-As u → 0 we have ub_u → log(1/q), so Φ(−b_u) and Φ(u − b_u) are o(u^k) for every k. The logarithm is then u²/2 + o(u²), and F_Y⁻¹(q) = u/2 + o(u) > 0. Hence c_q > 0.
+Lemma A. c_{p,q} = sup_{u>0} v_u(p, q).
 
-Transfer [sketch]. Put W = 1 + x^{1/2}Y and condition on W ≥ −1/2. This keeps W log-concave, and it changes the mass, the noisy constraint and the quantile by amounts exponentially small in 1/x. The endpoint −1 lies 2x^{−1/2} standard deviations away, so its contribution is also exponentially small. Hence R_{q,q}(x) ≥ 1 + c_q x^{1/2} − o(x^{1/2}).
+Proof.
+- Exponential tails are log-concave, which gives ≥.
+- Conversely, let Y be log-concave with pr(Y + Z ≤ 0) ≥ p. If Y = d is a point mass, then Φ(−d) ≥ p, so d ≤ −Φ⁻¹(p) = lim_{u→∞} v_u(p, q).
+- Otherwise F = F_Y is continuous and log F is concave (Prékopa, 1973). Let v = F⁻¹(q) and G(y) = F(v + y), so G(0) = q.
+- The point 0 is interior to {G > 0}. Hence the right derivative u of log G at 0 is a supergradient: log G(y) ≤ log q + uy for all y. Also u ≥ 0 because G is nondecreasing. If u = 0 then G ≤ q < 1, which is impossible, so u > 0.
+- Hence G ≤ G_u := min(q e^{uy}, 1), the distribution function of Y_{u,b₀} with b₀ = log(1/q)/u, and
 
-## A.5 Theorem 5 (matching upper bound) [skeleton; gaps (i) and (ii)]
+  p ≤ E G(−v − Z) ≤ E G_u(−v − Z) = κ_u(v + b₀).
 
-Steps 1 to 7 are as in `THEORY_NOTE.md` §2:
-1. Symmetry. It suffices to consider β ≥ 0.
-2. Convexity of F on (−∞, b]. By Jensen the left endpoint loses mass, up to an exponentially small correction τ.
-3. Condition on W ≥ −1, which moves the level to q′ = q/(1−m) ≥ q.
-4. Q_q(|W|) ≤ s₀, where F̃(s₀) = q′.
-5. By scaling, (s₀ − 1)/x^{1/2} ≤ c^{(M)}_{q′−τ′, q′}, the one-sided value with support restricted to [−M, ∞), M = 2x^{−1/2}. The restriction must be kept: without it c_{p,q} = +∞ for every p < q (exponential tails with u → 0).
-6. Left truncation shows that q ↦ c_{q,q} is nonincreasing, and moves the constraint slack τ′ to τ″.
-7. Absorb the slack by a left shift of size about τ″M/(1 − q). A log-concave law with support of length at most M has density at least about min(u, 1−u)/M at its interior u-quantiles. Since τ″ is exponentially small, the shift is o(1).
+- As κ_u is decreasing, v + b₀ ≤ b_u(p), that is, v ≤ v_u(p, q). □
 
-Gaps:
-- (i) The correction τ in step 2 must be uniformly small. Its bound grows with the density at b, so it fails when β exceeds about e^{1/x}. Such laws are within tiny total variation of a point mass, and a point mass has value below 1.
-- (ii) (narrowed) The regime q′ → 1 is handled separately.
-  - If q′ ≥ 1 − τ^{1/3}: for β ≥ 0 the density on [1, s₀] is at least the average density on [−1, 1], F̃(1)/2 ≥ (2q′ − 1)/2 − O(τ′) (assuming q > 1/2), and pr(e > 1 − w) ≥ 1/2 for w ≥ 1. So F̃(s₀) − F̃(1) ≤ 1 − q′ + 2τ′, and s₀ − 1 ≤ (τ^{1/3} + 2τ′)/((2q − 1)/2), which is exponentially small.
-  - Otherwise τ″ = O(τ^{2/3}).
-  - What remains is to state, with constants, the lower bound on the interior-quantile density of log-concave laws with bounded support, used in step 7. An earlier draft invoked continuity of the unrestricted c_{p,q} in p; that is false, since the unrestricted value is infinite for p < q.
+Lemma B. q ↦ c_q is nonincreasing.
 
-## A.6 Proposition 7 (order statistic under heterogeneous noise) [complete]
+Proof. Let q′ > q. Let Y be feasible for (q′, q′) with v = F_Y⁻¹(q′), and set m = (q′ − q)/(1 − q). Then Y* = Y | {Y ≥ F_Y⁻¹(m)} is log-concave, and
+
+  pr(Y* + Z ≤ 0) ≥ (q′ − m)/(1 − m) = q,  F_{Y*}(v) = q.
+
+A point mass has value −Φ⁻¹(q′) < −Φ⁻¹(q) ≤ c_q. □
+
+Small-u expansion. As u → 0, ub_u → log(1/q), and v_u(q, q) = u/2 + o(u). Hence c_q > 0.
+
+## A.5 Theorems 5 and 5+ (upper bound for every x) [complete]
+
+Theorem 5. Let W be log-concave, e ~ N(0, x) independent of W, and pr(|W + e| ≤ 1) ≥ q. Put s = 1 + c_q x^{1/2}.
+- Let α_R = pr(W + e > 1) and α_L = pr(W + e < −1); then α_L + α_R ≤ 1 − q.
+- Y = (W − 1)/x^{1/2} is log-concave, with pr(Y + Z ≤ 0) = 1 − α_R ≥ q. By the definition of c and Lemma B, F_Y⁻¹(1 − α_R) ≤ c_{1−α_R} ≤ c_q. So pr(W ≤ s) ≥ 1 − α_R.
+- Applying this to −W, and using that −e has the same law as e, gives pr(W < −s) ≤ α_L.
+- So pr(|W| ≤ s) ≥ 1 − α_L − α_R ≥ q, and Q_q(|W|) ≤ s. □
+
+Theorem 5+. Now let the noisy level be p ≥ q, so α_L + α_R ≤ 1 − p. For any β_L + β_R = 1 − q, the one-sided step at levels (1 − α, 1 − β) gives pr(W > 1 + x^{1/2}c_{1−α_R,1−β_R}) ≤ β_R, and symmetrically on the left. Optimising over β, and using that c_{p′,q′} decreases in p′ (so that the worst case has α_L + α_R = 1 − p), gives R_{p,q}(x) ≤ 1 + C_{p,q}x^{1/2}. □
+
+## A.6 Theorem 4 (lower bound) [complete]
+
+Fix ε > 0 and choose u with v_u(q, q) > c_q − ε. On p′ ∈ [q, (1 + q)/2], b_u(p′) ≥ b_min > −∞.
+
+Let Y = Y_{u,b_u(p′)} and W = 1 + x^{1/2}Y, which is log-concave. With t = 2x^{−1/2},
+
+  pr(|W + e| ≤ 1) = p′ − pr(Y + Z < −t) ≥ p′ − η_x,  η_x = e^{−u(t+b_min)/2} + Φ(−(t + b_min)/2).
+
+Take p′ = q + η_x, so the constraint holds.
+
+Since pr(|W| ≤ s) ≤ F_W(s) and F_W is strictly increasing near its q-quantile, Q_q(|W|) ≥ 1 + x^{1/2}v_u(q + η_x, q). Now η_x → 0 exponentially, and v_u is continuous in p. Hence liminf_{x→0}(R_{q,q}(x) − 1)/x^{1/2} ≥ c_q − ε. □
+
+## A.7 Proposition 7 (order statistic under heterogeneous noise) [complete]
 
 Let V_i be independent, and let F̄ = K⁻¹Σ_i F_i be the average distribution function of |V_i|, assumed continuous. Let T = |V|_(k) and t_p = F̄⁻¹(p). Then F̄(T) < p exactly when T < t_p, that is, when N := #{i : |V_i| < t_p} ≥ k. N is a sum of independent Bernoulli variables with success probabilities F_i(t_p), whose mean is F̄(t_p) = p. By Hoeffding (1956; Ann. Math. Statist. 27, 713–721 — theorem number to be checked), pr(N ≥ c) ≤ pr{Bin(K, p) ≥ c} for every integer c ≥ Kp + 1. With c = k, and p = p_k the δ-quantile of Beta(k, K+1−k), pr{Bin(K, p_k) ≥ k} = pr{Beta(k, K+1−k) ≤ p_k} = δ. Hence pr{F̄(T) ≥ p_k} ≥ 1 − δ, provided k ≥ Kp_k + 1. At K = 110, k = 105 we have Kp_k + 1 = 100.4 ≤ 105.
 

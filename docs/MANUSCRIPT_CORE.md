@@ -7,7 +7,7 @@ Status: working draft, 2026-09-24. Every claim carries its status from `docs/THE
 **Title (working).** When is calibration on noisy responses conservative for the latent target? Sharp transfer under log-concavity
 
 **Summary (draft).** Prediction intervals for a latent quantity, such as the true mean of a small area that was never sampled, are often calibrated on noisy proxies: survey direct estimates whose sampling variances are known. For symmetric unimodal latent errors, Anderson's theorem implies that noisy calibration is conservative. We ask what can be guaranteed without symmetry. Over all log-concave latent laws, we characterise the smallest latent radius implied by a noisy coverage level. The problem reduces exactly to a two-parameter family, with closed-form Gaussian convolutions. Three consequences follow.
-- For every coverage level, noisy calibration can undercover the latent target when the noise is small. The shortfall is of order √x, where x is the noise-to-threshold variance ratio. We identify the leading constant [lower bound proved; matching upper bound by a proof skeleton with two technical gaps].
+- For every coverage level, noisy calibration can undercover the latent target when the noise is small. The shortfall is of order √x, where x is the noise-to-threshold variance ratio. The radius shortfall is at most c_q x^{1/2} for every x, and this constant is sharp as x → 0 [proved].
 - This defines a critical noise level below which the noisy threshold must be widened and above which it may be shrunk.
 - With heterogeneous known noise variances, the exact constraint uses the average Gaussian kernel. Plugging in the mean variance can be anti-conservative, and plugging in the minimum variance can waste up to 14% of the width.
 
@@ -44,25 +44,43 @@ a two-dimensional maximisation of closed-form quantities. Numerically, this and 
 
 ## 3. Small noise
 
-**Theorem 4** [lower bound proved]. For every q ∈ (0, 1), R_{q,q}(x) ≥ 1 + c_q x^{1/2} + o(x^{1/2}), with
+Let Z ~ N(0, 1). The scaled one-sided problem is
 
-  c_q = sup_{u>0} u⁻¹ log{ e^{u²/2} Φ(b_u − u) + e^{u b_u} Φ(−b_u) } > 0,
+  c_{p,q} = sup{ F_Y⁻¹(q) : Y log-concave, pr(Y + Z ≤ 0) ≥ p },  c_q = c_{q,q}.
 
-where b_u solves Φ(−b) + e^{−ub+u²/2}Φ(b − u) = q. The extremal sequence is a density rising exponentially towards a cut-off just outside the threshold, with a boundary layer of width x^{1/2}. Values: c_{0.8} = 0.046, c_{0.9} = 0.019, c_{0.95} = 0.0084, c_{0.99} = 0.0014.
+By Remark 5′ below, t + D^{1/2}c_{p,q} is the sharp one-sided transfer for every D.
 
-**Theorem 5** [proof skeleton; two technical gaps listed in the note]. Let c_q be the value of the scaled one-sided problem, sup{F_Y⁻¹(q) : Y log-concave, pr(Y + Z ≤ 0) ≥ q}. Then R_{q,q}(x) = 1 + c_q x^{1/2} + o(x^{1/2}). The proof has four steps:
-- By the symmetry W ↦ −W, restrict to increasing log-affine laws. Jensen's inequality then shows that noise can only lose mass at the left endpoint.
-- Condition on W ≥ −1, and use scale invariance to reduce to the one-sided problem at a level q′ ≥ q.
-- Show that q ↦ c_q is nonincreasing, by a left-truncation argument.
-- The formula of Theorem 4 equals c_q numerically: the gap is ≤ 3 × 10⁻⁸ over the whole extremal family. The exact two-dimensional maximum matches 1 + c_{0.9}x^{1/2} to seven digits at x = 10⁻⁶, 10⁻⁵ and 10⁻⁴.
+**Lemma A** [proved]. The one-sided problem is solved by exponential tails. For Y = b − E, with E exponential of rate u, pr(Y + Z ≤ 0) = Φ(−b) + e^{−ub+u²/2}Φ(b − u). If b_u(p) is the root of this at level p, then c_{p,q} = sup_{u>0}{b_u(p) − u⁻¹log(1/q)}. The proof takes a supergradient of the concave function log F_Y at the q-quantile: it bounds F_Y by the exponential-tail distribution function with the same q-quantile. In particular
 
-Interpretation. A naive Taylor expansion suggests an O(x) effect, driven by f′(1) − f′(−1). The x^{1/2} rate comes from the boundary layer. Symmetry removes the effect entirely.
+  c_q = sup_{u>0} u⁻¹ log{ e^{u²/2} Φ(b_u − u) + e^{u b_u} Φ(−b_u) } > 0,  b_u = b_u(q).
 
-**Remark (one-sided transfer)** [proved]. The map W ↦ (W − t)/D^{1/2} preserves log-concavity, so the sharp one-sided transfer is exactly t + D^{1/2}c_{p,q} for every D, not only asymptotically. At the order-statistic level for K = 110 and q = 0.95 per side, c = −0.011, which is negligible. The gain from deconvolution therefore comes from two-sided calibration, where noise pushes mass out through both ends at once. The small-noise law is the one-sided effect seen locally at each endpoint.
+Values: c_{0.8} = 0.046, c_{0.9} = 0.019, c_{0.95} = 0.0084, c_{0.99} = 0.0014.
+
+**Theorem 4** [proved]. For every q ∈ (0, 1), R_{q,q}(x) ≥ 1 + c_q x^{1/2} − o(x^{1/2}). The extremal sequence is W = 1 + x^{1/2}Y with Y an exponential tail at a slightly raised level. This is a density rising exponentially towards a cut-off just outside the threshold, with a boundary layer of width x^{1/2}. The mass lost through the far endpoint is exponentially small in x^{−1/2}.
+
+**Theorem 5** [proved]. For every q ∈ (0, 1) and **every** x > 0, R_{q,q}(x) ≤ 1 + c_q x^{1/2}. Hence R_{q,q}(x) = 1 + c_q x^{1/2} + o(x^{1/2}) as x → 0.
+
+The proof splits the failure budget between the two endpoints.
+- If pr(|W + e| ≤ 1) ≥ q, the noisy mass leaving on the right, α_R, and on the left, α_L, satisfy α_L + α_R ≤ 1 − q.
+- On the right, (W − 1)/x^{1/2} is feasible for the one-sided problem at level 1 − α_R ≥ q. Left truncation shows that q ↦ c_q is nonincreasing, so pr(W > 1 + c_q x^{1/2}) ≤ α_R.
+- The same argument applied to −W gives pr(W < −1 − c_q x^{1/2}) ≤ α_L.
+- Adding the two gives the claim.
+
+The argument uses only log-concavity of distribution functions, translation, scaling and truncation. It does not use the reduction of Proposition 1.
+
+**Theorem 5+** [proved; constant numerical]. For p ≥ q and every x > 0, R_{p,q}(x) ≤ 1 + C_{p,q}x^{1/2}, where
+
+  C_{p,q} = sup_{α_L+α_R=1−p} inf_{β_L+β_R=1−q} max(c_{1−α_L,1−β_L}, c_{1−α_R,1−β_R}) ≥ c_{p,q}.
+
+Numerically C_{p,q} = c_{p,q}, so the worst split puts the whole budget on one side.
+
+Interpretation. A naive Taylor expansion suggests an O(x) effect, driven by f′(1) − f′(−1). The x^{1/2} rate comes from the boundary layer. Symmetry removes the effect entirely. The bound of Theorem 5 is uniform in x, so the undercoverage of an uncorrected noisy threshold never exceeds c_q x^{1/2} in radius.
+
+**Remark 5′ (one-sided transfer)** [proved]. The map W ↦ (W − t)/D^{1/2} preserves log-concavity, so the sharp one-sided transfer is exactly t + D^{1/2}c_{p,q} for every D, not only asymptotically. At the order-statistic level for K = 110 and q = 0.95 per side, c = −0.011, which is negligible. The gain from deconvolution therefore comes from two-sided calibration, where noise pushes mass out through both ends at once. The small-noise law is the one-sided effect seen locally at each endpoint.
 
 **Critical noise level** [numerical]. R_{q,q}(x) = 1 at x*(q) = 0.034, 0.017, 0.0062 and 0.0012 for q = 0.80, 0.85, 0.90 and 0.95. Below x*(q) the noisy threshold must be widened, by at most 0.37%, 0.17%, 0.063% and 0.012% respectively. Above it the threshold may be shrunk. [Figure: R_{q,q}(x) against x on a log scale, four q, with the symmetric bound 1.]
 
-**Corollary 6** [numerical; depends on Theorem 5]. A finite-sample slack p − q ≥ 8 × 10⁻⁴ removes the small-noise widening at q = 0.9. The order-statistic slack at K = 110 (0.0036) exceeds this.
+**Corollary 6** [inequality proved; constants numerical]. If C_{p,q} ≤ 0, then R_{p,q}(x) ≤ 1 for every x, so no widening is ever needed. The smallest slack p − q with C_{p,q} ≤ 0 is 4.4 × 10⁻³, 8.0 × 10⁻⁴ and 1.6 × 10⁻⁴ at q = 0.80, 0.90 and 0.95. The order-statistic slack at K = 110 and k = 105 is 0.0036. There C_{0.9036,0.90} = −0.057, so the finite-sample procedure shrinks the noisy threshold by at least a factor 1 − 0.057x^{1/2} at every noise level.
 
 ## 4. Heterogeneous noise and a finite-sample procedure
 
