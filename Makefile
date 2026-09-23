@@ -31,6 +31,7 @@ conditional: data
 	$(PY) experiments/e12_conditional_synth.py 2000 $(PROCS)
 	$(PY) experiments/e13_conditional_apipop.py 1000 $(PROCS)
 	$(PY) experiments/e14_grid_check.py $(PROCS)
+	$(PY) experiments/e15_e12_exact.py $(PROCS)
 
 all: quick tables apipop conditional
 	$(PY) experiments/e02_design_mixing.py
