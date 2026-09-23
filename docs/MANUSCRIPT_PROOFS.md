@@ -48,13 +48,16 @@ Steps 1 to 7 are as in `THEORY_NOTE.md` §2:
 2. Convexity of F on (−∞, b]. By Jensen the left endpoint loses mass, up to an exponentially small correction τ.
 3. Condition on W ≥ −1, which moves the level to q′ = q/(1−m) ≥ q.
 4. Q_q(|W|) ≤ s₀, where F̃(s₀) = q′.
-5. By scaling, (s₀ − 1)/x^{1/2} ≤ c_{q′−τ′, q′}.
+5. By scaling, (s₀ − 1)/x^{1/2} ≤ c^{(M)}_{q′−τ′, q′}, the one-sided value with support restricted to [−M, ∞), M = 2x^{−1/2}. The restriction must be kept: without it c_{p,q} = +∞ for every p < q (exponential tails with u → 0).
 6. Left truncation shows that q ↦ c_{q,q} is nonincreasing, and moves the constraint slack τ′ to τ″.
-7. Conclude with continuity in p.
+7. Absorb the slack by a left shift of size about τ″M/(1 − q). A log-concave law with support of length at most M has density at least about min(u, 1−u)/M at its interior u-quantiles. Since τ″ is exponentially small, the shift is o(1).
 
 Gaps:
 - (i) The correction τ in step 2 must be uniformly small. Its bound grows with the density at b, so it fails when β exceeds about e^{1/x}. Such laws are within tiny total variation of a point mass, and a point mass has value below 1.
-- (ii) Continuity of c_{p,q} in p near the diagonal, uniformly as q′ → 1, where τ″ = τ′(1−q)/(1−q′) can blow up.
+- (ii) (narrowed) The regime q′ → 1 is handled separately.
+  - If q′ ≥ 1 − τ^{1/3}: for β ≥ 0 the density on [1, s₀] is at least the average density on [−1, 1], F̃(1)/2 ≥ (2q′ − 1)/2 − O(τ′) (assuming q > 1/2), and pr(e > 1 − w) ≥ 1/2 for w ≥ 1. So F̃(s₀) − F̃(1) ≤ 1 − q′ + 2τ′, and s₀ − 1 ≤ (τ^{1/3} + 2τ′)/((2q − 1)/2), which is exponentially small.
+  - Otherwise τ″ = O(τ^{2/3}).
+  - What remains is to state, with constants, the lower bound on the interior-quantile density of log-concave laws with bounded support, used in step 7. An earlier draft invoked continuity of the unrestricted c_{p,q} in p; that is false, since the unrestricted value is infinite for p < q.
 
 ## A.6 Proposition 7 (order statistic under heterogeneous noise) [complete]
 
