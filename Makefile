@@ -1,7 +1,7 @@
 PY ?= python3
 PROCS ?= 8
 
-.PHONY: test data quick tables apipop all
+.PHONY: test data quick tables apipop conditional all
 
 test:
 	$(PY) -m pytest -q
@@ -26,7 +26,13 @@ apipop: data
 	$(PY) experiments/e07_apipop_ldc.py 1000 $(PROCS)
 	$(PY) experiments/e08_apipop_fh.py 1000 $(PROCS)
 
-all: quick tables apipop
+# conditional reliability (E12-E14): about an hour on 100+ cores
+conditional: data
+	$(PY) experiments/e12_conditional_synth.py 2000 $(PROCS)
+	$(PY) experiments/e13_conditional_apipop.py 1000 $(PROCS)
+	$(PY) experiments/e14_grid_check.py $(PROCS)
+
+all: quick tables apipop conditional
 	$(PY) experiments/e02_design_mixing.py
 	$(PY) experiments/e06_synthetic_mc.py
 	$(PY) experiments/e11_pums_structure.py ri

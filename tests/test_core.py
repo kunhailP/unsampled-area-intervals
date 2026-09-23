@@ -59,3 +59,9 @@ def test_gaussian_is_feasible_and_below_ldc_bound():
     from scipy.stats import norm
     x = .136; sW = np.sqrt((1 / norm.ppf(.95))**2 - x)
     assert 1.645 * sW <= ShrinkTable('0.1')(0.136) + 1e-9
+
+
+def test_pac_rank():
+    from uai.procedures import pac_rank
+    assert pac_rank(110, .90, .05) == 105
+    assert pac_rank(110, .90, .04) == 105

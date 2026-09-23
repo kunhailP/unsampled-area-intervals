@@ -19,6 +19,7 @@ confirmed, numerical only, already in the literature, or refuted — is in
 | Exact marginal latent-coverage guarantee of split conformal rules via the Beta law of the conformal order statistic | `e05`, `results/exact_coverage.csv` | Beta law exact; worst-case H numerical |
 | Synthetic Monte Carlo; apipop finite-population comparisons with noisy conformal and Fay–Herriot (REML and parametric bootstrap) | `e06`–`e08` | FH met nominal coverage on apipop and was 12–17% narrower than the certified rule |
 | Negative checks (multi-quantile constraints, depth allocation); ACS PUMS structure check | `e09`–`e11` | numerical |
+| Conditional reliability Pr_D[coverage ≥ .90] without evaluation noise (synthetic) and on apipop; PAC versions of FH, CP and LDC; widths at equal reliability; grid cross-check of the shrink table | `e12`–`e14` | FH_PAC shortest but misses the target in some shapes; LDC_PAC always meets it, 11–20% wider |
 
 ## Reproduce
 
@@ -40,7 +41,7 @@ pickles and downloaded data go to `data/` (git-ignored).
 
 ```
 src/uai/        kernel.py  logconcave.py  procedures.py
-experiments/    e01 ... e11, fetch_apipop.py, _common.py
+experiments/    e01 ... e14, fetch_apipop.py, _common.py
 results/        small JSON/CSV outputs of the experiments
 docs/           FINDINGS.md (current state)  HISTORY.md  RESEARCH_DESIGN.md (dated log)  START_GATE_MEMO.md
 tests/          test_core.py

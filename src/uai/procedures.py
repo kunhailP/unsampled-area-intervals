@@ -8,7 +8,7 @@ from pathlib import Path
 
 import numpy as np
 from scipy import stats
-from scipy.optimize import minimize_scalar
+from scipy.optimize import brentq, minimize_scalar
 
 ROOT = Path(__file__).resolve().parents[2]
 _FEASIBLE_X = 0.3696          # above this, P(|e| <= t) < .9: data contradict the noise level
@@ -67,3 +67,33 @@ def fay_herriot_boot_pivot(V, D, mu, A, rng, B=300):
         mub, Ab, vb = fay_herriot_reml(Vb, D)
         piv[b] = (thb - mub) / np.sqrt(Ab + vb)
     return piv
+
+
+def pac_rank(K, level=0.90, delta=0.05):
+    """Smallest k with P(Beta(k, K+1-k) >= level) >= 1 - delta: the k-th order statistic of
+    K exchangeable scores then has conditional coverage >= level with probability >= 1 - delta."""
+    for k in range(1, K + 1):
+        if stats.beta.sf(level, k, K + 1 - k) >= 1 - delta:
+            return k
+    return None
+
+
+def fay_herriot_boot_pac(V, D, mu, A, rng, B=300, level=0.90, delta=0.05):
+    """One parametric bootstrap giving (i) pivot draws as in fay_herriot_boot_pivot and
+    (ii) a tolerance multiplier lam: the (1 - delta) bootstrap quantile of the multiplier each
+    refit needs for its interval mu* +- lam sqrt(A* + v*) to cover N(mu, A) with prob. level."""
+    piv, lam = np.empty(B), np.empty(B)
+    sA = np.sqrt(max(A, 1e-12))
+    for b in range(B):
+        Vb = mu + rng.normal(0, np.sqrt(A), len(V)) + rng.normal(0, np.sqrt(D))
+        thb = mu + rng.normal(0, np.sqrt(A))
+        mub, Ab, vb = fay_herriot_reml(Vb, D)
+        se = np.sqrt(Ab + vb)
+        piv[b] = (thb - mub) / se
+        cov = lambda l: (stats.norm.cdf((mub + l * se - mu) / sA)
+                         - stats.norm.cdf((mub - l * se - mu) / sA) - level)
+        hi = 1.0
+        while cov(hi) < 0 and hi < 1e4:
+            hi *= 2
+        lam[b] = brentq(cov, 0, hi) if hi < 1e4 else hi
+    return piv, np.quantile(lam, 1 - delta)
