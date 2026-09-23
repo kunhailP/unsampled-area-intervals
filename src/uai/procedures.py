@@ -102,3 +102,12 @@ def fay_herriot_boot_pac(V, D, mu, A, rng, B=300, level=0.90, delta=0.05):
             hi *= 2
         lam[b] = brentq(cov, 0, hi) if hi < 1e4 else hi
     return piv, np.quantile(lam, 1 - delta)
+
+
+def union_bound_halfwidth(t, D_up, p, q):
+    """Assumption-light baseline: if P(|V| <= t) >= p > q, V = W + e, e ~ N(0, D), D <= D_up,
+    then P(|W| <= s) >= q for s = t + sqrt(D_up) z_{1-(p-q)/2}, because |W| <= |V| + |e|.
+    Needs no shape assumption; used as a safe reference against which LDC is measured."""
+    if p <= q:
+        return np.inf
+    return t + np.sqrt(D_up) * stats.norm.ppf(1 - (p - q) / 2)

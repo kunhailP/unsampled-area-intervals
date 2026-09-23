@@ -84,3 +84,14 @@ def test_shrink_table_small_x_not_one():
     from uai.procedures import ShrinkTable
     t = ShrinkTable('0.1')
     assert t(1e-5) == t.r[0] >= 1
+
+
+def test_union_bound_baseline():
+    """Monte Carlo check of the shape-free baseline on a skewed W."""
+    from uai.procedures import union_bound_halfwidth
+    rng = np.random.default_rng(0)
+    W = rng.exponential(1, 400000) - 1; D = 0.3
+    V = W + rng.normal(0, np.sqrt(D), W.size)
+    t = np.quantile(np.abs(V), 0.95); s = union_bound_halfwidth(t, D, 0.95, 0.90)
+    assert np.mean(np.abs(W) <= s) >= 0.90
+    assert union_bound_halfwidth(1, D, 0.9, 0.9) == np.inf
