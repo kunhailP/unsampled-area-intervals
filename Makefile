@@ -1,7 +1,7 @@
 PY ?= python3
 PROCS ?= 8
 
-.PHONY: test data quick tables apipop conditional all
+.PHONY: test data quick tables apipop conditional theory all
 
 test:
 	$(PY) -m pytest -q
@@ -33,7 +33,16 @@ conditional: data
 	$(PY) experiments/e14_grid_check.py $(PROCS)
 	$(PY) experiments/e15_e12_exact.py $(PROCS)
 
-all: quick tables apipop conditional
+# exact shrink function, small-noise map, heterogeneous noise, HetLDC (hours on ~15 cores)
+theory: data
+	$(PY) experiments/e16_exact_shrink_table.py $(PROCS)
+	$(PY) experiments/e18_hetero_kernel.py $(PROCS)
+	$(PY) experiments/e19_boundary_map.py $(PROCS)
+	$(PY) experiments/fig_boundary_map.py
+	$(PY) experiments/e20_hetldc_synth.py 150 $(PROCS)
+	$(PY) experiments/e21_hetldc_apipop.py 120 $(PROCS)
+
+all: quick tables apipop conditional theory
 	$(PY) experiments/e02_design_mixing.py
 	$(PY) experiments/e06_synthetic_mc.py
 	$(PY) experiments/e11_pums_structure.py ri

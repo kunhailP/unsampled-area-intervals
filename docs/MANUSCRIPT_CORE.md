@@ -76,15 +76,24 @@ where ε bounds the error from compressing the D_i to 32 support points. [proved
 
 **Mean-variance plug-in** [numerical]. The common-variance shortcut R_{p,q}(D̄/T²) is not conservative in general. At D̄/T² = 0.2 with lognormal spread 1.0 it is 1.4% too short. The minimum-variance plug-in, which is conservative, is up to 14% longer than exact.
 
-## 5. Empirical illustration [to be filled from E20 and the apipop study]
+## 5. Empirical illustration
 
-Target: pr_D{ pr(W_new ∈ C | D) ≥ 0.90 } ≥ 0.95, for synthetic latent laws and the apipop finite population.
+Target: pr_D{ pr(W_new ∈ C | D) ≥ 0.90 } ≥ 0.95. K = 110 calibration areas with Var W = 1 and heterogeneous known noise variances D_i = 0.577 × lognormal(0, 0.7)/mean. Conditional coverage is computed exactly from closed-form latent distribution functions; 150 replications per law (Monte Carlo s.e. of a reliability ≈ 0.018).
 
-Comparators:
-- Fay–Herriot with a parametric-bootstrap tolerance multiplier. It is shortest, but misses the target under non-normal latent laws: 0.916 for truncated Laplace with heterogeneous D.
-- Conformal on noisy scores with the order-statistic rank.
-- Mean-variance LDC.
-- HetLDC.
+Table 1 (E20). Reliability / mean width.
+
+| latent law | FH, bootstrap tolerance | noisy conformal, k = 105 | LDC, mean variance | HetLDC |
+|---|---|---|---|---|
+| normal | 0.960 / 3.93 | 1.000 / 4.96 | 0.993 / 4.60 | 0.980 / 4.44 |
+| Laplace | 0.927 / 3.96 | 1.000 / 5.15 | 0.993 / 4.81 | 0.987 / 4.65 |
+| gamma(2), centred | 1.000 / 3.95 | 1.000 / 4.97 | 1.000 / 4.60 | 1.000 / 4.44 |
+| truncated Laplace | 0.847 / 3.89 | 1.000 / 4.93 | 0.980 / 4.57 | 0.967 / 4.41 |
+
+- HetLDC meets the target for every law. It is 3.4–3.5% shorter than the mean-variance rule and about 10% shorter than noisy conformal.
+- The Fay–Herriot tolerance interval is shortest, but it relies on normality and misses the target under the truncated Laplace law.
+- The width HetLDC pays over it, 12–18%, is the price of a guarantee that holds for every log-concave law.
+
+[apipop finite-population study: E21, to be added.]
 
 ## 6. Limits
 
