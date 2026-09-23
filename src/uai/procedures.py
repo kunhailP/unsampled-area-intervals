@@ -17,8 +17,11 @@ _FEASIBLE_X = 0.3696          # above this, P(|e| <= t) < .9: data contradict th
 class ShrinkTable:
     """Conservative lookup of r_alpha(x) from results/r_table.json.
 
-    r is nonincreasing in x (checked on the grid), so the value at the grid point at or
-    below x is >= r(x): the resulting interval is at least as wide as the exact rule.
+    r is nonincreasing in x on the table range (checked on the grid, not proved), so the
+    value at the grid point at or below x is >= r(x) there. Below the first grid point the
+    first table value is returned, not 1: for asymmetric log-concave W, r can exceed 1 at
+    small x (explicit example in tests/test_core.py). All table values are numerical search
+    results, not certified upper bounds; see docs/FINDINGS.md C10, C25.
     """
 
     def __init__(self, alpha='0.1', path=ROOT / 'results' / 'r_table.json'):
@@ -27,8 +30,10 @@ class ShrinkTable:
         self.r = np.array([tab[str(k)] for k in self.x])
 
     def __call__(self, x):
-        if x >= _FEASIBLE_X or x < self.x[0]:
+        if x >= _FEASIBLE_X:        # alpha = .10 only; the data contradict the noise level
             return 1.0
+        if x < self.x[0]:
+            return float(self.r[0])
         return float(self.r[np.searchsorted(self.x, x, side='right') - 1])
 
 
