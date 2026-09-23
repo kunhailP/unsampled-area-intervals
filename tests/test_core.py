@@ -65,3 +65,22 @@ def test_pac_rank():
     from uai.procedures import pac_rank
     assert pac_rank(110, .90, .05) == 105
     assert pac_rank(110, .90, .04) == 105
+
+
+def test_asymmetric_small_noise_counterexample():
+    """Log-affine W on [0, b]: noisy mass >= .90 at t = 1 but latent mass < .90, so r > 1."""
+    from scipy.integrate import quad
+    from scipy.stats import norm
+    b, x = 1.0681, 0.0005
+    f = lambda w: np.exp(w) / np.expm1(b)
+    s = np.sqrt(x)
+    noisy = quad(lambda w: f(w) * (norm.cdf((1 - w) / s) - norm.cdf((-1 - w) / s)), 0, b,
+                 points=[1], epsabs=1e-14, limit=500)[0]
+    latent = np.expm1(1) / np.expm1(b)
+    assert noisy > 0.90 > latent
+
+
+def test_shrink_table_small_x_not_one():
+    from uai.procedures import ShrinkTable
+    t = ShrinkTable('0.1')
+    assert t(1e-5) == t.r[0] >= 1

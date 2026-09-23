@@ -73,14 +73,11 @@ if __name__ == '__main__':
     r = pd.DataFrame([row for rows, _ in out for row in rows])
     W = {k: w for _, ev in out for k, w in ev}
     r.to_pickle(DATA / 'conditional_apipop_reps.pkl')
-    ne = len(next(iter(W.values())))
     summ, mat = [], []
     for (cond, m), g in r.groupby(['condition', 'method']):
         cv = g['cov']
-        # superpopulation view: remove binomial evaluation noise from the spread (no fpc)
-        sd_super = np.sqrt(max(cv.var() - np.mean(cv * (1 - cv)) / ne, 0))
         summ.append(dict(condition=cond, method=m, reps=len(g), mean_cov=cv.mean(), sd_cov=cv.std(),
-                         sd_cov_minus_eval_noise=sd_super, pr_cov_ge_90=np.mean(cv >= LEV),
+                         pr_cov_ge_90=np.mean(cv >= LEV),
                          q05_cov=cv.quantile(.05), width=(g.hi - g.lo).mean()))
         mat.append(dict(condition=cond, method=m, **matched(g, W)))
     S = pd.DataFrame(summ); M = pd.DataFrame(mat)

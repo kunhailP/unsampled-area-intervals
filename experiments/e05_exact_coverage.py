@@ -1,12 +1,15 @@
-"""E05. Exact marginal latent-coverage guarantee under the log-concave class.
+"""E05. Numerical lower bound on marginal latent coverage under the log-concave class.
 
 Split conformal: t = k-th smallest of K calibration |V|; then P(|V| <= t) ~ Beta(k, K+1-k)
 exactly. Given P(|V| <= t) = p, the latent coverage of s = t * rho is >= H(p) =
 inf_{log-concave W} P(|W| <= rho) s.t. P(|W+e| <= 1) >= p  (t normalised to 1).
-Guarantee >= (1 - eta) * E_Beta[ min_x H(P; x) ]  (eta: failure prob. of the noise bound; LDC only).
+Bound = (1 - eta) * E_Beta[ min_x H(P; x) ]  (eta: failure prob. of the noise bound; LDC only).
+H comes from a penalised DE search (an upper estimate of an infimum) on four x values only,
+so this is the value of the current bounding argument, not a certified or attained worst case.
 
 Rules: noisy CP (rho = 1) and LDC (rho = r_.10(x)).
-Finding (K = 110): plain noisy CP at k = 100 guarantees only 0.867; both rules need k = 102.
+Finding (K = 110): the bound is 0.867 for noisy CP at k = 100; at k = 102 it is 0.916 (noisy CP)
+and 0.905 (LDC, after the min/mean order fix). These are candidate ranks under this argument.
   python experiments/e05_exact_coverage.py compute [procs]   # H grid -> results/h_table.json
   python experiments/e05_exact_coverage.py                   # integrate -> results/exact_coverage.csv
 """
@@ -58,8 +61,10 @@ def integrate(K=110, eta=.01):
     for rule in ['noisy', 'ldc_a0.10']:
         for k in range(98, 108):
             w = beta.pdf(u, k, K + 1 - k); w /= w.sum()
-            per_x = {x: float((w * Hfun(rule, x, u)).sum()) for x in xs}
-            g = min(per_x.values()) * ((1 - eta) if rule != 'noisy' else 1)
+            Hx = np.array([Hfun(rule, x, u) for x in xs])
+            per_x = {x: float((w * h).sum()) for x, h in zip(xs, Hx)}
+            # x = D / T^2 moves with T, so the pointwise bound is E_U[min_x H], not min_x E_U[H]
+            g = float((w * Hx.min(0)).sum()) * ((1 - eta) if rule != 'noisy' else 1)
             out.append(dict(rule=rule, K=K, k=k, guarantee=g, **{f'x={x}': v for x, v in per_x.items()}))
     df = pd.DataFrame(out); df.to_csv(RESULTS / 'exact_coverage.csv', index=False)
     print(df[['rule', 'k', 'guarantee']].to_string(index=False))
