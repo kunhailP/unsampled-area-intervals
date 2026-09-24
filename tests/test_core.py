@@ -121,3 +121,39 @@ def test_small_noise_upper_bound_all_x():
     for x in (1e-5, 1e-3, 1e-2):
         R, _ = R_grid(.9, .9, x, betas, ells)
         assert R <= 1 + cq * np.sqrt(x) + 1e-12
+
+
+def test_box_bounds_are_sound():
+    """Proposition 10: every law inside a box obeys the box's noisy upper / latent lower bound."""
+    from uai.certify import _cdf_latent, _cdf_noisy, box_status
+    rng = np.random.default_rng(3)
+    for _ in range(300):
+        x, s = 10 ** rng.uniform(-2, -0.5), rng.uniform(.2, 1.3)
+        u0, v0 = rng.uniform(0, .95, 2); u1, v1 = u0 + rng.uniform(0, .05), v0 + rng.uniform(0, .05)
+        b0 = rng.uniform(-1.2, 2); b1 = b0 + rng.uniform(0, .2)
+        box = np.array([[u0, u1, v0, v1, b0, b1]])
+        u, v, b = rng.uniform(u0, u1, 20), rng.uniform(v0, v1, 20), rng.uniform(b0, b1, 20)
+        be, el = u / (1 - u), v / (1 - v)
+        N = _cdf_noisy(1.0, b, el, be, x) - _cdf_noisy(-1.0, b, el, be, x)
+        L = _cdf_latent(s, b, el, be) - _cdf_latent(-s, b, el, be)
+        ok_n, _ = box_status(N.max() - 1e-6, 2.0, s, [x], [1.0], box)     # p just below max N
+        assert not ok_n[0]                                                  # N_up >= max N
+        bad_l, _ = box_status(-1.0, L.min() + 1e-6, s, [x], [1.0], box)
+        assert not bad_l[0]                                                 # L_low <= min L
+
+
+def test_certify_brackets_R():
+    from uai.certify import certify
+    assert certify(.9, .9, .8984, .116)[0]
+    assert not certify(.9, .9, .8970, .116, max_boxes=2_000_000)[0]
+
+
+def test_certified_lookup_dominates_grid_values():
+    """Feasible grid values (E16) are lower bounds of R, so they may never exceed the lookup."""
+    import pandas as pd
+    from uai.procedures import CertifiedShrinkTable
+    tab = CertifiedShrinkTable(0.9)
+    e = pd.read_csv(ROOT / 'results' / 'r_exact_p0.9_q0.9.csv')
+    for x, r in zip(e.x, e.R):
+        if np.isfinite(r) and x < tab.x_edge:
+            assert r <= tab(x) + 1e-12

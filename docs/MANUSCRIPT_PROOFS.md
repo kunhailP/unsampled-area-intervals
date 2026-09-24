@@ -82,6 +82,21 @@ Take p′ = q + η_x, so the constraint holds.
 
 Since pr(|W| ≤ s) ≤ F_W(s) and F_W is strictly increasing near its q-quantile, Q_q(|W|) ≥ 1 + x^{1/2}v_u(q + η_x, q). Now η_x → 0 exponentially, and v_u is continuous in p. Hence liminf_{x→0}(R_{q,q}(x) − 1)/x^{1/2} ≥ c_q − ε. □
 
+## A.8 Proposition 9 (continuity in the noise level) [complete]
+
+Let W be log-concave and feasible at noise x + h, and write e_{x+h} = e_x + e_h with independent summands. W′ = W + e_h is log-concave (Prékopa) and pr(|W′ + e_x| ≤ 1) ≥ p, so t = Q_q(|W′|) ≤ R_{p,q}(x). Since pr(|W + e_h| ≤ t) ≥ q, Theorem 5 at scale t gives Q_q(|W|) ≤ t R_{q,q}(h/t²) ≤ t + c_q h^{1/2}. For a noise mixture in which every component variance increases by h, the same argument applies, because adding an independent e_h to the mixture adds h to every component. □
+
+## A.9 Proposition 10 (box bounds) [complete; relies on Proposition 1]
+
+Stochastic order. For Y with density ∝ e^{−βy} on [0, ℓ]:
+- The likelihood ratio between slopes β′ > β is e^{−(β′−β)y}, which is decreasing, so Y_{β′} ≤_lr Y_β.
+- For ℓ < ℓ′, F_ℓ(y) = F(y)/F(ℓ) ≥ F(y)/F(ℓ′) = F_{ℓ′}(y), so Y_ℓ ≤_st Y_{ℓ′}.
+- The ends are limits in the same order: ℓ = 0 and β = ∞ give the point mass at 0, ℓ = ∞ gives the exponential law, and (β, ℓ) = (0, ∞) is bounded by −∞.
+
+Hence W = b − Y satisfies W_lo ≤_st W ≤_st W_hi on a box. The maps W ↦ pr(W + e ≤ ±1) are expectations of decreasing functions, and so is pr(W ≤ y). That gives the two bounds. The density bound uses pr(|W + e| ≤ 1) = ∫ f_W g ≤ ‖f_W‖_∞ ∫ g = 2‖f_W‖_∞, together with ‖f_W‖_∞ = β/(1 − e^{−βℓ}), which is increasing in β and decreasing in ℓ.
+
+The range of b is handled as in `THEORY_NOTE.md` §5.
+
 ## A.7 Proposition 7 (order statistic under heterogeneous noise) [complete]
 
 Let V_i be independent, and let F̄ = K⁻¹Σ_i F_i be the average distribution function of |V_i|, assumed continuous. Let T = |V|_(k) and t_p = F̄⁻¹(p). Then F̄(T) < p exactly when T < t_p, that is, when N := #{i : |V_i| < t_p} ≥ k. N is a sum of independent Bernoulli variables with success probabilities F_i(t_p), whose mean is F̄(t_p) = p. By Hoeffding (1956; Ann. Math. Statist. 27, 713–721 — theorem number to be checked), pr(N ≥ c) ≤ pr{Bin(K, p) ≥ c} for every integer c ≥ Kp + 1. With c = k, and p = p_k the δ-quantile of Beta(k, K+1−k), pr{Bin(K, p_k) ≥ k} = pr{Beta(k, K+1−k) ≤ p_k} = δ. Hence pr{F̄(T) ≥ p_k} ≥ 1 − δ, provided k ≥ Kp_k + 1. At K = 110, k = 105 we have Kp_k + 1 = 100.4 ≤ 105.

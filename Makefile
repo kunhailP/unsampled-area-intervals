@@ -41,6 +41,10 @@ theory: data
 	$(PY) experiments/fig_boundary_map.py
 	$(PY) experiments/e20_hetldc_synth.py 150 $(PROCS)
 	$(PY) experiments/e21_hetldc_apipop.py 120 $(PROCS)
+	$(PY) experiments/e22_estimated_variance.py 120 $(PROCS)
+	$(PY) experiments/e23_allocation.py $(PROCS)
+	$(PY) experiments/e24_certified_table.py $(PROCS)
+	$(PY) experiments/e25_certified_ldc.py 2000 $(PROCS)
 
 all: quick tables apipop conditional theory
 	$(PY) experiments/e02_design_mixing.py

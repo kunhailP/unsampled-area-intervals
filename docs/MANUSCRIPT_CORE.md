@@ -42,6 +42,18 @@ Relation to prior work:
 
 a two-dimensional maximisation of closed-form quantities. Numerically, this and an independent differential-evolution search over the three-parameter family agree to 1.5 × 10⁻¹³ at all 73 tabulated x ≥ 0.006.
 
+**Proposition 9 (continuity in the noise level)** [proved]. For all x, h ≥ 0, R_{p,q}(x + h) ≤ R_{p,q}(x) + c_q h^{1/2}.
+
+Proof. If W is feasible at noise x + h, then W + e_h is log-concave and feasible at noise x, so t = Q_q(|W + e_h|) ≤ R_{p,q}(x). Theorem 5 at scale t then gives Q_q(|W|) ≤ t + c_q h^{1/2}.
+
+Theorem 5 is the case x = 0.
+
+**Certified values** [method proved; values certified in floating point]. Write the extremal law as W = b − Y, where Y has density ∝ e^{−βy} on [0, ℓ]. W is stochastically increasing in β and b and decreasing in ℓ. Both pr(W + e ≤ ±1) are decreasing functionals of W. So on any box of (β, ℓ, b) the noisy mass has an upper bound, and the latent mass a lower bound, given by closed forms at two corners.
+
+Branch and bound over boxes, with β, ℓ ∈ [0, ∞] compactified and b confined analytically, then certifies R_{p,q}(x) ≤ s. Proposition 9 extends certificates from grid points to all x.
+
+For q = 0.9 and x ∈ [0.05, 0.3], the certified upper bound is within 3 × 10⁻⁴ (relative) of a feasible value. The procedures in §4 use these certified values [Table: R_{0.9,0.9} and R_{0.9036,0.9} with certified bounds]. At the order-statistic level p_k = 0.9036, the certified table is a median 2.1% below the p = q table. Using it shortens LDC_PAC by 1.6–1.7% at no cost to the guarantee.
+
 ## 3. Small noise
 
 Let Z ~ N(0, 1). The scaled one-sided problem is
@@ -122,5 +134,5 @@ apipop finite population (E21). There are 325 school districts: 110 are used for
 - Log-concavity of the latent residual is assumed, not tested.
 - The noise is Gaussian and independent of W, with known variances.
 - Estimated variances need an outer confidence set.
-- Certification of R by interval bounds on the two-dimensional grid is not yet done.
+- Certified values rest on Proposition 1 and on double-precision closed forms with a 10⁻⁹ margin; interval arithmetic is not used.
 - The effect sizes of the small-noise phenomenon are small. The practical gains are in the heterogeneous-noise constraint and the finite-sample procedure.
