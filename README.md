@@ -34,7 +34,8 @@ coverage of a fixed finite population are outside the theory (experiments only).
 | Certified upper bounds of R_{p,.9}, p = .9, .9036, .9068 (monotone branch and bound, double precision with margin); certified LDC and HetLDC | `src/uai/certify.py`, `e24`–`e26`, `e20` | certified up to floating point (C39–C41) |
 | Ball-arithmetic enclosures of c_q and C_{p,q} (Arb, outward rounding) | `src/uai/interval.py`, `e27` | certified (C42, C46) |
 | Level vs exact-kernel decomposition of the HetLDC gain | `e28` | at matched level the exact kernel is 0.3% shorter (C45) |
-| Estimated variances: kernel-domination and scale lemmas; rule S (pooled variance scale) and area-wise envelope H | `src/uai/estimated.py`, `e29`, `e30` | S keeps 70–83% of the known-variance gain with a guarantee; H needs ~50+ d.f. per area (C50–C52) |
+| Estimated variances: kernel-domination and scale lemmas; rule S (pooled variance scale) and area-wise envelope H | `src/uai/estimated.py`, `e29`, `e30` | S keeps 62–84% of the known-variance gain (baseline-dependent); certification adds 0.14% (C50–C54); this H construction needs ~50+ d.f. per area |
+| Shape-free baseline (LatentCP-type Markov rule) | `procedures.shape_free_markov`, `e31` | log-concavity buys 25–31% of width (C53) |
 
 ## Reproduce
 

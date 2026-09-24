@@ -85,10 +85,27 @@ def s_rule(V, a, s2_hat, nu, q=0.90, delta=0.04, eta_lo=0.009, eta_hi=0.001, k=N
 # grid, so the radius is a converging lower value of R[u], not a certified bound.
 # ---------------------------------------------------------------------------------------------
 
+def kernel_envelope(w, h0=0.05):
+    """Continuous majorant of M(w) = sup_{x > 0} g_x(w), vanishing at +-infinity. For |w| > 1,
+    g_x(w) = P(a/s <= Z <= b/s) with a = |w| - 1, b = |w| + 1, s = sqrt(x); its only critical
+    point is s^2 = (b^2 - a^2) / (2 log(b/a)) = 2|w| / log((|w|+1)/(|w|-1)), and M(w) <= 1/2.
+    M jumps from 1 to 1/2 at |w| = 1, so a ramp of width h0 is added to keep the majorant
+    continuous (Lemma 11 asks for a continuous kernel)."""
+    from scipy.special import ndtr
+    w = np.abs(np.asarray(w, dtype=float))
+    out = np.ones_like(w)
+    o = w > 1
+    s = np.sqrt(2 * w[o] / np.log((w[o] + 1) / (w[o] - 1)))
+    M = ndtr((1 - w[o]) / s) - ndtr((-1 - w[o]) / s)
+    out[o] = np.minimum(1.0, M + 0.5 * np.maximum(0.0, 1 - (w[o] - 1) / h0))
+    return out
+
+
 def h_kernel(D_hat, nu, T, alpha=0.002, eta=0.01, w_max=8.0, h=0.002):
     """Upper envelope u >= gbar_{D,T} on the event {at most N* area-wise intervals miss}, where
     the area-wise intervals have level 1 - alpha (chi-square, nu_i d.f.) and N* is the
-    (1 - eta)-quantile of Bin(K, alpha). Returns (w, u, N*)."""
+    (1 - eta)-quantile of Bin(K, alpha). A missed area contributes at most the kernel envelope
+    M(w) (`kernel_envelope`), so u is continuous and vanishes at +-infinity. Returns (w, u, N*)."""
     from scipy.special import ndtr
     D_hat, nu = np.asarray(D_hat, float), np.broadcast_to(np.asarray(nu, float), np.shape(D_hat))
     K = len(D_hat)
@@ -101,7 +118,7 @@ def h_kernel(D_hat, nu, T, alpha=0.002, eta=0.01, w_max=8.0, h=0.002):
     env = np.maximum(A(L), A(U)) - np.minimum(B(L), B(U))
     u = env.sum(0)
     if n_star > 0:
-        u += np.sort(1 - env, axis=0)[-n_star:].sum(0)
+        u += np.sort(kernel_envelope(w)[None, :] - env, axis=0)[-n_star:].sum(0)
     return w, np.minimum(u / K, 1.0), n_star
 
 

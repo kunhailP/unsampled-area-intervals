@@ -267,3 +267,33 @@ def test_areawise_envelope_dominates_true_kernel():
     x = D[:, None] / T**2
     g = (ndtr((1 - w) / np.sqrt(x)) - ndtr((-1 - w) / np.sqrt(x))).mean(0)
     assert np.all(u >= g - 1e-12)
+
+
+def test_kernel_envelope_majorises_and_vanishes():
+    from scipy.special import ndtr
+    from uai.estimated import kernel_envelope
+    w = np.linspace(-6, 6, 1201)
+    M = kernel_envelope(w)
+    for x in np.geomspace(1e-4, 100, 60):
+        g = ndtr((1 - w) / np.sqrt(x)) - ndtr((-1 - w) / np.sqrt(x))
+        assert np.all(g <= M + 1e-12)
+    assert kernel_envelope(np.array([50.0]))[0] < .02
+    near = kernel_envelope(np.array([1 - 1e-9, 1 + 1e-9, -1 - 1e-9]))
+    assert np.all(np.abs(near - 1) < 1e-6)                  # continuous at |w| = 1 (ramp)
+
+
+def test_shape_free_markov_is_valid_for_a_bimodal_law():
+    """The Markov bound needs no shape: check the population version on a two-point latent law."""
+    from scipy.special import ndtr
+    from uai.procedures import shape_free_markov
+    rng = np.random.default_rng(1)
+    K = 110
+    D = np.full(K, .3)
+    W = rng.choice([-1.5, 1.5], K)
+    V = W + rng.normal(0, np.sqrt(D))
+    h, p_k, T = shape_free_markov(V, D, 108)
+    # on the order-statistic event, P(|V| <= T) >= p_k; the latent two-point law is covered
+    # with probability 1 or 0, and the bound says it is covered when the noisy mass allows
+    noisy = ndtr((T - 1.5) / np.sqrt(.3)) - ndtr((-T - 1.5) / np.sqrt(.3))
+    if noisy >= p_k:
+        assert h >= 1.5

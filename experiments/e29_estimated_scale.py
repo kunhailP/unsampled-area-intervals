@@ -17,8 +17,11 @@ Rules (target Pr[cov >= .90] >= .95):
   Dlow        HetLDC with lo * a_i, lo the lower end of the scale interval (no guarantee: R is
               not monotone in the noise level)
   S           sup of R^mix over the scale interval, delta = .04, eta = .01 (guarantee under S)
-Radii are converged grid values (not certified), as HetLDC in E20.
-  python experiments/e29_estimated_scale.py [reps] [procs]
+  S_cert      rule S with certified upper bounds U_j at every grid point (the form Lemma 11
+              requires; branch and bound in double precision with a margin, `uai.certify`)
+Radii of the other rules are converged grid values (not certified), as HetLDC in E20.
+  python experiments/e29_estimated_scale.py [reps] [procs] [cert]
+With `cert`, only S_cert is computed for the same seeds and merged into the existing CSV.
 Writes results/estimated_scale.csv and results/estimated_scale_summary.csv.
 """
 import sys
@@ -72,13 +75,35 @@ def one(args):
                  cov=float(cdf(shape, h) - cdf(shape, -h))) for m, h in halves.items()]
 
 
+def one_cert(args):
+    """S_cert only, from the same data as `one`."""
+    import time
+    setting, shape, seed = args
+    rng = np.random.default_rng(seed)
+    V, D, a, s2_hat, nu = data(setting, shape, rng)
+    t0 = time.time()
+    h, info = s_rule(V, a, s2_hat, nu, q=LEV, delta=.04, eta_lo=.009, eta_hi=.001, certify=True)
+    return [dict(setting=setting, shape=shape, seed=seed, method='S_cert', half=h,
+                 cells=info['cells'], lo_ratio=np.nan, seconds=time.time() - t0,
+                 cov=float(cdf(shape, h) - cdf(shape, -h)))]
+
+
 if __name__ == '__main__':
     reps = int(sys.argv[1]) if len(sys.argv) > 1 else 100
     procs = int(sys.argv[2]) if len(sys.argv) > 2 else 14
+    cert = len(sys.argv) > 3 and sys.argv[3] == 'cert'
     jobs = [(g, s, 290000 + 10000 * i + 1000 * j + r) for i, g in enumerate(SETTINGS)
             for j, s in enumerate(SHAPES) for r in range(reps)]
+    rows = []
     with Pool(procs) as pool:
-        r = pd.DataFrame([row for rows in pool.imap_unordered(one, jobs) for row in rows])
+        for i, out in enumerate(pool.imap_unordered(one_cert if cert else one, jobs)):
+            rows += out
+            if i % 25 == 0:
+                print(f'{i + 1}/{len(jobs)} done', flush=True)
+    r = pd.DataFrame(rows)
+    if cert:
+        old = pd.read_csv(RESULTS / 'estimated_scale.csv')
+        r = pd.concat([old[old.method != 'S_cert'], r])
     r.to_csv(RESULTS / 'estimated_scale.csv', index=False)
     s = r.groupby(['setting', 'shape', 'method']).agg(
         reps=('cov', 'size'), mean_cov=('cov', 'mean'),
