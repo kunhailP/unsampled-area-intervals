@@ -6,7 +6,9 @@ difference between LDC_PAC and HetLDC is the noise kernel: one Gaussian with the
 versus the exact average kernel. Target Pr_D[Pr(W_new in C | D) >= .90] >= .95; conditional
 coverage from closed-form CDFs (src/uai/latent_laws.py).
 Rules: FH_normal, FH_PAC (bootstrap tolerance), CP_PAC (k = 105), LDC_PAC (k = 105, mean-D
-Gaussian kernel, E04 table), HetLDC (k = 105, exact average kernel).
+Gaussian kernel, E04 table), HetLDC (k = 105, exact average kernel, grid value), and with
+certified radii (E24-E26): LDC_cert_pk (certified R_{.9036,.9} table) and HetLDC_cert
+(branch-and-bound certificate for the mixture kernel; union bound if none clears).
   python experiments/e20_hetldc_synth.py [reps] [procs]
 Writes results/hetldc_synth.csv (per replication) and results/hetldc_synth_summary.csv.
 """
@@ -21,12 +23,14 @@ from scipy import stats
 from _common import RESULTS
 from e12_conditional_synth import draw
 from uai.latent_laws import cdf
-from uai.procedures import (ShrinkTable, conformal_threshold, fay_herriot_boot_pac,
-                            fay_herriot_reml, hetldc_halfwidth, pac_rank)
+from uai.procedures import (CertifiedShrinkTable, ShrinkTable, conformal_threshold,
+                            fay_herriot_boot_pac, fay_herriot_reml, hetldc_certified,
+                            hetldc_parts, pac_rank)
 
 warnings.filterwarnings('ignore')
 K, DBAR, LEV = 110, 0.577, 0.90
 SHAPES = ['normal', 'laplace', 'gamma2_skew', 'trunc_laplace']
+CERTIFY = True
 
 
 def one(args):
@@ -38,9 +42,15 @@ def one(args):
     mu, A, vmu = fay_herriot_reml(V, D); se = np.sqrt(A + vmu)
     _, lam = fay_herriot_boot_pac(V, D, mu, A, rng, level=LEV)
     z = stats.norm.ppf(.5 + LEV / 2)
+    parts = hetldc_parts(V, D, kp)
+    het_cert, tol = hetldc_certified(V, D, kp, parts=parts) if CERTIFY else (np.nan, np.nan)
     ints = {'FH_normal': (mu, z * se), 'FH_PAC': (mu, lam * se), 'CP_PAC': (0, T),
-            'LDC_PAC': (0, T * table(D.mean() / T**2)), 'HetLDC': (0, hetldc_halfwidth(V, D, kp))}
-    return [dict(shape=shape, seed=seed, method=m, centre=c, half=h,
+            'LDC_PAC': (0, T * table(D.mean() / T**2)), 'HetLDC': (0, parts[0] * parts[4])}
+    if CERTIFY:
+        # p_k = .9068 at delta = .05 >= .9036, so the certified p = .9036 table is valid here
+        ints['LDC_cert_pk'] = (0, T * CertifiedShrinkTable(0.9036)(D.mean() / T**2))
+        ints['HetLDC_cert'] = (0, het_cert)
+    return [dict(shape=shape, seed=seed, method=m, centre=c, half=h, cert_tol=tol,
                  cov=float(cdf(shape, c + h) - cdf(shape, c - h))) for m, (c, h) in ints.items()]
 
 

@@ -221,6 +221,13 @@ def hetldc_halfwidth(V, D, k=None, q=0.90, delta=0.05, n_pts=32):
     Gaussian kernel at x_i = D_i / T^2, and s = T * R_{p_k - eps, q}(kernel) covers the latent
     target with probability >= q for every log-concave G (eps: kernel quantisation error).
     Assumes W_i iid log-concave, e_i ~ N(0, D_i) independent of W with D_i known."""
+    T, p_k, eps, (pts, wts), R = hetldc_parts(V, D, k, q, delta, n_pts)
+    return T * R
+
+
+def hetldc_parts(V, D, k=None, q=0.90, delta=0.05, n_pts=32):
+    """Pieces of HetLDC: threshold T, level p_k, quantisation error eps, compressed kernel
+    (pts, wts) and the grid value R of R^mix_{p_k - eps, q} (a lower bound of it)."""
     V, D = np.asarray(V), np.asarray(D)
     K = len(V)
     k = pac_rank(K, q, delta) if k is None else k
@@ -228,4 +235,20 @@ def hetldc_halfwidth(V, D, k=None, q=0.90, delta=0.05, n_pts=32):
     assert k >= K * p_k + 1, 'Hoeffding comparison needs k >= K p + 1'
     T = np.sort(np.abs(V))[k - 1]
     (pts, wts), eps = quantised_kernel(D / T**2, n_pts)
-    return T * shrink_mix(p_k - eps, q, pts, wts=wts)
+    return T, p_k, eps, (pts, wts), shrink_mix(p_k - eps, q, pts, wts=wts)
+
+
+def hetldc_certified(V, D, k=None, q=0.90, delta=0.05, n_pts=32, parts=None,
+                     tols=(1e-3, 3e-3, 1e-2, 3e-2, 1e-1)):
+    """HetLDC with a certified radius: the smallest R (1 + tol) that the branch and bound of
+    `uai.certify` clears for the mixture kernel at level p_k - eps. If none clears, the
+    shape-free union bound (C28) with the largest D is returned. Returns (half-width, tol);
+    tol is nan for the fallback."""
+    from uai.certify import certified_upper
+    T, p_k, eps, (pts, wts), R = hetldc_parts(V, D, k, q, delta, n_pts) if parts is None else parts
+    if not np.isfinite(R):
+        return np.inf, np.nan
+    s, tol, _ = certified_upper(p_k - eps, q, pts, R, rel_tols=tols, ws=wts, max_boxes=8_000_000)
+    if np.isfinite(s):
+        return T * s, tol
+    return union_bound_halfwidth(T, np.max(D), p_k - eps, q), np.nan
