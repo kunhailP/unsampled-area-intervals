@@ -1,7 +1,9 @@
 """Rigorous enclosures of the one-sided constants c_{p,q} and of the split constant C_{p,q}.
 
 All inequalities that decide a bound are checked in ball arithmetic (Arb via python-flint);
-floating point is used only to propose candidate points. The results therefore do not rest on
+floating point is used only to propose candidate points. A ball is turned into a double only
+with outward rounding (`fup`, `fdown`), sums of bounds are formed as balls, and the u-grid ends
+are exactly u_min and u_max. The results therefore do not rest on
 the double-precision closed forms used elsewhere.
 
 One-sided problem (Lemma A). For the exponential tail Y = b - E, E ~ Exp(u), Z ~ N(0, 1),
@@ -52,6 +54,30 @@ SQRT2 = arb(2).sqrt()
 def A(v):
     """Exact ball for a float or a decimal string."""
     return arb(v) if isinstance(v, str) else arb(float(v))
+
+
+def fup(x):
+    """Smallest double found with double >= every point of the ball x (outward rounding)."""
+    f = float(x.upper())
+    while not arb(f) >= x:
+        f = math.nextafter(f, math.inf)
+    return f
+
+
+def fdown(x):
+    """Double <= every point of the ball x."""
+    f = float(x.lower())
+    while not arb(f) <= x:
+        f = math.nextafter(f, -math.inf)
+    return f
+
+
+def log_grid(u_min, u_max, n):
+    """Geometric grid of doubles whose ends are exactly u_min and u_max, so the boxes
+    [grid[i], grid[i+1]] cover [u_min, u_max] without gaps."""
+    g = np.exp(np.linspace(math.log(u_min), math.log(u_max), n + 1))
+    g[0], g[-1] = u_min, u_max
+    return np.maximum.accumulate(g)
 
 
 def Phi(x):
@@ -119,18 +145,17 @@ def c_enclosure(p, q, u_max=64.0, n0=400, tol=1e-9, max_iter=200000):
     Lq = -q.log()
     # lower bound from the best of the proposal points
     u_min = small_u_end(p)
-    grid = np.exp(np.linspace(math.log(u_min), math.log(u_max), n0 + 1))
+    grid = log_grid(u_min, u_max, n0)
     bs = [b_bounds(float(u), p) for u in grid]
-    lo = max(A(bl) - Lq / A(u) for u, (bl, _) in zip(grid, bs))
-    lo_f = float(lo.lower())
+    lo_f = max(fdown(A(bl) - Lq / A(u)) for u, (bl, _) in zip(grid, bs))
     # ends
     Lp = -p.log()
     ua = A(u_min)
-    end_small = ((Lp - Lq + _eps_term(u_min)) / ua).upper()
-    end_large = A(bs[-1][1]).upper()
+    end_small = fup((Lp - Lq + _eps_term(u_min)) / ua)
+    end_large = bs[-1][1]
     # box bounds on [u_i, u_{i+1}]
     def box(u0, bh0, u1):
-        return float((A(bh0) - Lq / A(u1)).upper())
+        return fup(A(bh0) - Lq / A(u1))
     heap = [(-box(grid[i], bs[i][1], grid[i + 1]), float(grid[i]), float(grid[i + 1]), bs[i][1])
             for i in range(n0)]
     heapq.heapify(heap)
@@ -139,15 +164,15 @@ def c_enclosure(p, q, u_max=64.0, n0=400, tol=1e-9, max_iter=200000):
         _, u0, u1, bh0 = heapq.heappop(heap)
         um = math.sqrt(u0 * u1)
         bl, bh = b_bounds(um, p)
-        vl = float((A(bl) - Lq / A(um)).lower())
+        vl = fdown(A(bl) - Lq / A(um))
         if vl > lo_f:
             lo_f = vl
         heapq.heappush(heap, (-box(u0, bh0, um), u0, um, bh0))
         heapq.heappush(heap, (-box(um, bh, u1), um, u1, bh))
         it += 1
-    hi = max(-heap[0][0], float(end_small), float(end_large))
-    return lo_f, hi, dict(u_min=u_min, boxes=len(heap), iters=it, end_small=float(end_small),
-                          end_large=float(end_large))
+    hi = max(-heap[0][0], end_small, end_large)
+    return lo_f, hi, dict(u_min=u_min, boxes=len(heap), iters=it, end_small=end_small,
+                          end_large=end_large)
 
 
 def phi_upper(a, g, u_max=64.0, n0=200, tol=1e-7, max_iter=100000):
@@ -156,25 +181,23 @@ def phi_upper(a, g, u_max=64.0, n0=200, tol=1e-7, max_iter=100000):
     p1 = 1 - a
     L = -p1.log()
     u_min = small_u_end(p1)
-    gneg = max(0.0, -float(g.mid())) if not (g > 0) else 0.0
-    if gneg > 0:
-        gneg = float((-g).upper())
+    gneg = -g if g < 0 else arb(0)          # g is an exact double, so one branch is certain
     ua = A(u_min)
-    G_end = (L + _eps_term(u_min) + ua * A(gneg)).upper()
+    G_end = fup(L + _eps_term(u_min) + ua * gneg)
     bh_max = b_bounds(u_max, p1)[1]
     if not (A(bh_max) - g < 0):
         raise RuntimeError('increase u_max')
-    grid = np.exp(np.linspace(math.log(u_min), math.log(u_max), n0 + 1))
+    grid = log_grid(u_min, u_max, n0)
     bs = [b_bounds(float(u), p1) for u in grid]
 
     def box(u0, bh0, u1):
         d = A(bh0) - g
         if d < 0:
             return -math.inf
-        return float((A(u1) * d).upper())
+        return fup(A(u1) * d)
 
     def point(u, bl):
-        return float((A(u) * (A(bl) - g)).lower())
+        return fdown(A(u) * (A(bl) - g))
 
     lo = max(point(u, bl) for u, (bl, _) in zip(grid, bs))
     heap = [(-box(grid[i], bs[i][1], grid[i + 1]), float(grid[i]), float(grid[i + 1]), bs[i][1])
@@ -189,10 +212,10 @@ def phi_upper(a, g, u_max=64.0, n0=200, tol=1e-7, max_iter=100000):
         heapq.heappush(heap, (-box(u0, bh0, um), u0, um, bh0))
         heapq.heappush(heap, (-box(um, bh, u1), um, u1, bh))
         it += 1
-    G = max(-heap[0][0], float(G_end))
+    G = max(-heap[0][0], G_end)
     if G <= 0:
         return 0.0
-    return float((1 - (-A(G)).exp()).upper())
+    return fup(1 - (-A(G)).exp())
 
 
 def split_certificate(p, q, g, n0=16, max_rounds=40, pool=None, tol=1e-7):
@@ -201,7 +224,7 @@ def split_certificate(p, q, g, n0=16, max_rounds=40, pool=None, tol=1e-7):
     1 - q are halved, up to max_rounds times. Returns (worst interval bound, budget, ok, info)."""
     pa, qa = A(p), A(q)
     T = 1 - pa
-    budget = float((1 - qa).lower())
+    budget = 1 - qa                       # compared as a ball
     cache = {0.0: 0.0}                    # phi at a = 0 is 0 (no feasible law)
 
     def need(points):
@@ -210,9 +233,9 @@ def split_certificate(p, q, g, n0=16, max_rounds=40, pool=None, tol=1e-7):
         vals = pool.starmap(phi_upper, args) if pool is not None else [phi_upper(*a) for a in args]
         cache.update(zip(new, vals))
 
-    # nodes as exact fractions of T; phi is evaluated at the rounded-up ends
+    # nodes as exact dyadic fractions of T; phi (nondecreasing) is evaluated at ends rounded up
     def up(fr):
-        return float((T * fr).upper()) if fr > 0 else 0.0
+        return fup(T * fr) if fr > 0 else 0.0
 
     ivs = [(i / (2 * n0), (i + 1) / (2 * n0)) for i in range(n0)]     # fractions of T, a_L <= T/2
     worst = math.inf
@@ -220,12 +243,12 @@ def split_certificate(p, q, g, n0=16, max_rounds=40, pool=None, tol=1e-7):
         need([up(b) for _, b in ivs] + [up(1 - a) for a, _ in ivs])
         bad, worst = [], -math.inf
         for a, b in ivs:
-            v = cache[up(b)] + cache[up(1 - a)]
-            worst = max(worst, v)
+            v = A(cache[up(b)]) + A(cache[up(1 - a)])    # exact at 128 bits
+            worst = max(worst, fup(v))
             if not v < budget:
                 bad.append((a, b))
         if not bad:
-            return worst, budget, True, dict(rounds=rnd, evals=len(cache))
+            return worst, fdown(budget), True, dict(rounds=rnd, evals=len(cache))
         ivs = [iv for iv in ivs if iv not in bad] + \
               [h for a, b in bad for h in ((a, (a + b) / 2), ((a + b) / 2, b))]
-    return worst, budget, False, dict(rounds=max_rounds, evals=len(cache), bad=bad[:5])
+    return worst, fdown(budget), False, dict(rounds=max_rounds, evals=len(cache), bad=bad[:5])

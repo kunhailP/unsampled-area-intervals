@@ -3,9 +3,14 @@
 Three lookups for the same threshold T = |V|_(k), k = pac_rank(110, .9, .04) = 105, and the
 same pooled noise lower bound D_low (eta = .01):
   LDC_PAC        old table (converged grid maxima of R_{.9,.9}, step lookup; not certified)
-  LDC_cert       certified upper bound of R_{.9,.9}
-  LDC_cert_pk    certified upper bound of R_{.9036,.9}; valid because on the order-statistic
-                 event the noisy mass at T is >= p_k = .90361 >= .9036 (Beta law)
+  LDC_cert       certified envelope sup_{x >= x_low} R_{.9,.9}(x) at x_low = D_low / T^2
+  LDC_cert_pk    the same envelope for R_{.9036,.9}; on the order-statistic event the noisy
+                 mass at T is >= p_k = .90361 >= .9036
+Only a lower bound D_low of the noise variance is known, and R is not monotone in x, so the
+certified rules use `CertifiedShrinkTable.envelope` (sup over x >= x_low), not the value at
+x_low. (An earlier version looked up the value at x_low, which is not justified.) D_low is the
+pooled chi-square bound of the common-variance model; in the heterogeneous regime it is only a
+plug-in, and no rule has a guarantee there.
 Conditional coverage from closed-form CDFs. Same target Pr_D[cov >= .90] >= .95.
   python experiments/e25_certified_ldc.py [reps] [procs]
 Writes results/certified_ldc.csv and results/certified_ldc_summary.csv.
@@ -43,7 +48,8 @@ def one(args):
         D_low = noise_lower_bound(Dh, K * NU)
         T = conformal_threshold(V, kp)
         for m, tab in tabs.items():
-            h = T * tab(D_low / T**2)
+            x_low = D_low / T**2
+            h = T * (tab.envelope(x_low) if m != 'LDC_PAC' else tab(x_low))
             rows.append(dict(shape=shape, regime=regime, seed=seed, rep=rep, method=m, half=h,
                              x=D_low / T**2, cov=float(cdf(shape, h) - cdf(shape, -h))))
     return rows

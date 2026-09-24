@@ -190,3 +190,50 @@ def test_interval_constants_file():
     from uai.procedures import CertifiedShrinkTable
     assert CertifiedShrinkTable.C_Q >= d['c']['0.9'][1]
     assert CertifiedShrinkTable.C_SPLIT[0.9036] >= -0.057
+
+
+def test_min_variance_plugin_not_conservative():
+    """External review counterexample (checked in 192-bit balls): noisy coverage >= .9 under an
+    equal mixture of N(0, 1e-8) and N(0, 5e-4), yet the min-variance radius 1 + c_.9 * 1e-4 covers
+    W = b - Exp(2) with probability < .9."""
+    from flint import arb, ctx
+    old = ctx.prec
+    ctx.prec = 192
+    try:
+        Phi = lambda z: (-z / arb(2).sqrt()).erfc() / 2
+        b, rate = arb('1.04356470165499'), arb(2)
+
+        def noisy_cdf(t, D):
+            sd = D.sqrt(); z = (t - b) / sd
+            return Phi(z) + (rate * (t - b) + rate**2 * D / 2).exp() * Phi(-z - rate * sd)
+
+        nm = lambda D: noisy_cdf(1, D) - noisy_cdf(-1, D)
+        D0, D1 = arb('1e-8'), arb('0.0005')
+        h = 1 + arb('0.019062') * D0.sqrt()
+        assert (nm(D0) + nm(D1)) / 2 > arb('0.9')
+        assert (rate * (h - b)).exp() - (rate * (-h - b)).exp() < arb('0.9')
+    finally:
+        ctx.prec = old
+
+
+def test_outward_rounding():
+    from flint import arb
+    from uai.interval import A, fdown, fup, log_grid
+    z = arb(1) / 3
+    assert A(float(z.upper())) < z                 # plain conversion can round down
+    assert A(fup(z)) >= z and A(fdown(z)) <= z
+    T = 1 - A('0.9036')
+    assert A(fup(T / 32)) >= T / 32
+    g = log_grid(0.0189, 64.0, 50)
+    assert g[0] == 0.0189 and g[-1] == 64.0 and np.all(np.diff(g) >= 0)
+
+
+def test_envelope_dominates_lookup_to_the_right():
+    """envelope(x_low) >= lookup(x) for every x >= x_low below the feasibility edge."""
+    from uai.procedures import CertifiedShrinkTable
+    for p in (0.9, 0.9036, 0.9068):
+        tab = CertifiedShrinkTable(p)
+        xs = np.linspace(1e-5, tab.x_edge * 0.999, 400)
+        look = np.array([tab(x) for x in xs])
+        for i in range(0, 400, 23):
+            assert tab.envelope(xs[i]) >= look[i:].max() - 1e-12

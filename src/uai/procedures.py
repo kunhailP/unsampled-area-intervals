@@ -84,6 +84,28 @@ class CertifiedShrinkTable:
             best = min(best, float(np.min(self.u[m] + self.C_Q * np.sqrt(x - self.x[m]))))
         return float(best)
 
+    def envelope(self, x_low):
+        """Certified upper bound of sup{R(x) : x_low <= x < x_edge}, for use when only a lower
+        bound x_low of the scaled noise variance is known. R is not monotone in x (it rises for
+        small x when p = q), so the value at x_low alone is not enough. Between grid points
+        Proposition 9 gives R(x) <= U_j + c_q sqrt(x_{j+1} - x_j) on [x_j, x_{j+1}], and below the
+        first grid point the closed bound 1 + C sqrt(x) is monotone, so its ends suffice."""
+        if x_low >= self.x_edge:
+            return 1.0
+        keep = self.x < self.x_edge
+        xs, us = self.x[keep], self.u[keep]
+        closed = lambda x: 1 + self.c_split * np.sqrt(x)      # monotone in x
+        vals = []
+        if x_low < xs[0]:
+            vals += [closed(x_low), closed(xs[0])]
+        right = np.append(xs[1:], self.x_edge)
+        m = right > x_low
+        left = np.maximum(xs[m], x_low)
+        by_grid = us[m] + self.C_Q * np.sqrt(right[m] - xs[m])
+        by_closed = np.maximum(closed(left), closed(right[m]))
+        vals += list(np.minimum(by_grid, by_closed))
+        return float(max(vals))
+
 def conformal_threshold(scores, k):
     """k-th smallest |score| (1-based)."""
     return np.sort(np.abs(scores))[k - 1]
@@ -122,8 +144,11 @@ def fay_herriot_boot_pivot(V, D, mu, A, rng, B=300):
 
 
 def pac_rank(K, level=0.90, delta=0.05):
-    """Smallest k with P(Beta(k, K+1-k) >= level) >= 1 - delta: the k-th order statistic of
-    K exchangeable scores then has conditional coverage >= level with probability >= 1 - delta."""
+    """Smallest k with P(Beta(k, K+1-k) >= level) >= 1 - delta. For K i.i.d. scores with a
+    continuous law, the k-th order statistic then has coverage >= level for a new independent
+    score, conditionally on the calibration sample, with probability >= 1 - delta. (With
+    independent non-identical scores see Proposition 7 / `hetldc_parts`, which needs
+    k >= K p + 1; exchangeability alone gives only the marginal guarantee.)"""
     for k in range(1, K + 1):
         if stats.beta.sf(level, k, K + 1 - k) >= 1 - delta:
             return k
@@ -161,9 +186,11 @@ def union_bound_halfwidth(t, D_up, p, q):
 
 
 def clopper_pearson_lower(n_success, n, delta):
-    """One-sided lower confidence bound for a success probability. By Hoeffding (1956) it is
-    also valid for the mean success probability of independent, non-identical Bernoulli trials
-    (a Poisson-binomial count is more concentrated than the binomial with the same mean)."""
+    """One-sided Clopper-Pearson lower confidence bound for an i.i.d. Bernoulli success
+    probability. It is NOT valid in general for the mean of independent non-identical trials:
+    n = 2, probabilities (.0505, 0), delta = .05 gives mean .02525 but a bound .02532 after one
+    success, an event of probability .0505 > delta. Hoeffding's comparison needs a tail
+    condition such as k >= n p + 1 (used in `hetldc_parts`). Not used by any procedure."""
     return 0.0 if n_success == 0 else float(stats.beta.ppf(delta, n_success, n - n_success + 1))
 
 
