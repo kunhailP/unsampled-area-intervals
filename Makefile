@@ -1,7 +1,7 @@
 PY ?= python3
 PROCS ?= 8
 
-.PHONY: test data quick tables apipop conditional theory all
+.PHONY: test data quick tables apipop conditional theory paper all
 
 test:
 	$(PY) -m pytest -q
@@ -50,3 +50,9 @@ all: quick tables apipop conditional theory
 	$(PY) experiments/e02_design_mixing.py
 	$(PY) experiments/e06_synthetic_mc.py
 	$(PY) experiments/e11_pums_structure.py ri
+
+# needs a TeX engine; TEX = tectonic -X compile (single binary) or latexmk -pdf
+TEX ?= tectonic -X compile
+paper:
+	$(PY) experiments/fig_paper.py
+	cd paper && $(TEX) main.tex
