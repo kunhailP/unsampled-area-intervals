@@ -45,6 +45,7 @@ theory: data
 	$(PY) experiments/e23_allocation.py $(PROCS)
 	$(PY) experiments/e24_certified_table.py $(PROCS)
 	$(PY) experiments/e25_certified_ldc.py 2000 $(PROCS)
+	$(PY) experiments/e27_interval_constants.py $(PROCS)
 
 all: quick tables apipop conditional theory
 	$(PY) experiments/e02_design_mixing.py

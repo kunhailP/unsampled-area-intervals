@@ -33,7 +33,7 @@ Prediction intervals for a latent quantity, such as the true mean of an area tha
 
 Suppose a residual $W$, the latent target minus a centre fitted on independent training data, is observed only through $V = W + e$ with $e \sim N(0, D)$ independent of $W$ and $D$ known. This is the position of a survey statistician who calibrates a prediction interval for the true mean of an unsampled area on the direct estimates of sampled areas \citep{fay1979}, and of a conformal analyst whose calibration responses carry measurement error \citep{einbinder2024, cohen2025}. The threshold $t$ that gives the noisy scores coverage $p$ is observable. The question is what radius gives the latent residual coverage $q$.
 
-If $W$ is symmetric and unimodal, Anderson's theorem \citep{anderson1955} gives $\pr(|W + e| \le t) \le \pr(|W| \le t)$, so the noisy threshold is conservative; \citet{einbinder2024} use this for conformal prediction with noisy labels. Without symmetry nothing of the kind is known. \citet{cohen2025} estimate the noise-free threshold by deconvolution, but give no finite-sample guarantee. We study the problem over the class $\LC$ of log-concave laws on the real line, including point masses. This class is closed under convolution, conditioning on intervals, translation and scaling, and it contains the usual models for regression residuals.
+If $W$ is symmetric and unimodal, Anderson's theorem \citep{anderson1955} gives $\pr(|W + e| \le t) \le \pr(|W| \le t)$, so the noisy threshold is conservative; \citet{einbinder2024} use this for conformal prediction with noisy labels. Without symmetry only shape-free statements are available. If the noise has median zero, a noisy interval of level $1 - \alpha$ covers the latent value with probability at least $1 - 2\alpha$, and noisy coverage can exceed latent coverage \citep{guille2024}. \citet{cohen2025} estimate the noise-free threshold by deconvolution, but give no finite-sample guarantee. Worst-case coverage over latent laws that are compatible with noisy observations also underlies the robust empirical Bayes intervals of \citet{armstrong2022}, which constrain moments of the latent law and cover sampled units. Interval methods for small areas likewise target sampled areas \citep{chatterjee2008, yoshimori2014, bersson2024, zhang2026}. We study the problem over the class $\LC$ of log-concave laws on the real line, including point masses. This class is closed under convolution, conditioning on intervals, translation and scaling, and it contains the usual models for regression residuals.
 
 After scaling $t$ to $1$, write $x = D/t^2$, let $Z \sim N(0,1)$, and define
 \begin{equation}\label{eq:R}
@@ -41,7 +41,7 @@ R_{p,q}(x) = \sup\{ Q_q(|W|) : W \in \LC,\ \pr(|W + x^{1/2}Z| \le 1) \ge p \},
 \end{equation}
 where $Q_q$ denotes the $q$-quantile. If calibration certifies noisy coverage at least $p$ at threshold $t$, then $t\,R_{p,q}(D/t^2)$ is the smallest radius that guarantees latent coverage $q$ for every log-concave latent law. This is sharpness within the class and the single constraint; it is not optimality among all procedures that use the whole calibration sample.
 
-Our results are as follows. The supremum in \eqref{eq:R} is attained on point masses and on log-affine densities on a segment, and for these the constraint has a closed form (\S\ref{sec:reduction}). For every $q$ and every $x$, $R_{q,q}(x) \le 1 + c_q x^{1/2}$ with an explicit $c_q > 0$, and the constant is attained as $x \to 0$. A finite-sample slack $p - q$ of order $10^{-3}$ makes $R_{p,q}(x) \le 1$ for all $x$ (\S\ref{sec:small}). A monotone branch and bound certifies $R_{p,q}$ to a relative accuracy of $3\times 10^{-4}$ over most of its range. With heterogeneous known noise the order statistic keeps its Beta law, so the construction gives a finite-sample procedure (\S\ref{sec:procedure}).
+Our results are as follows. The supremum in \eqref{eq:R} is attained on point masses and on log-affine densities on a segment, and for these the constraint has a closed form (\S\ref{sec:reduction}). For every $q$ and every $x$, $R_{q,q}(x) \le 1 + c_q x^{1/2}$ with an explicit $c_q > 0$, and the constant is attained as $x \to 0$. A finite-sample slack $p - q$ of order $10^{-3}$ makes $R_{p,q}(x) \le 1$ for all $x$ (\S\ref{sec:small}). A monotone branch and bound certifies $R_{p,q}$ to a relative accuracy of $3\times 10^{-4}$ over most of its range. With heterogeneous known noise the order statistic keeps its Beta law, by a comparison of \citet{hoeffding1956} and \citet{sen1970}, so the construction gives a finite-sample procedure (\S\ref{sec:procedure}).
 
 \section{Reduction to a two-parameter family}\label{sec:reduction}
 
@@ -79,7 +79,7 @@ c_q = \sup_{u>0} u^{-1}\log\{e^{u^2/2}\Phi(b_u - u) + e^{u b_u}\Phi(-b_u)\} > 0,
 Moreover $q \mapsto c_q$ is nonincreasing.
 \end{lemma}
 
-The proof takes a supergradient $u$ of the concave function $\log F_Y$ at the $q$-quantile $v$. Then $F_Y(v + y) \le \min(q e^{uy}, 1)$, which is the distribution function of an exponential tail with the same quantile and a larger constraint value. Monotonicity in $q$ follows by conditioning away left mass. Numerically $c_{0.80} = 0.0461$, $c_{0.90} = 0.0191$, $c_{0.95} = 0.0084$ and $c_{0.99} = 0.0014$.
+The proof takes a supergradient $u$ of the concave function $\log F_Y$ at the $q$-quantile $v$. Then $F_Y(v + y) \le \min(q e^{uy}, 1)$, which is the distribution function of an exponential tail with the same quantile and a larger constraint value. Monotonicity in $q$ follows by conditioning away left mass. Ball arithmetic gives $c_{0.80} \in [0.0460730, 0.0460731]$, $c_{0.90} \in [0.0190618, 0.0190619]$, $c_{0.95} \in [0.0084075, 0.0084077]$ and $c_{0.99} \in [0.0013950, 0.0013958]$ (Appendix).
 
 \begin{theorem}\label{thm:small}
 For every $q \in (0,1)$ and every $x > 0$, $R_{q,q}(x) \le 1 + c_q x^{1/2}$. Moreover $R_{q,q}(x) = 1 + c_q x^{1/2} + o(x^{1/2})$ as $x \to 0$.
@@ -98,10 +98,10 @@ R_{p,q}(x) \le 1 + C_{p,q}x^{1/2}, \qquad C_{p,q} = \sup_{\alpha_L+\alpha_R = 1-
 for every $x$. Numerically the worst split puts the whole budget on one side, so that $C_{p,q} = c_{p,q}$.
 
 \begin{corollary}\label{cor:slack}
-If $C_{p,q} \le 0$ then $R_{p,q}(x) \le 1$ for every $x$. The smallest slack $p - q$ with $C_{p,q} \le 0$ is $4.4\times10^{-3}$, $8.0\times10^{-4}$ and $1.6\times10^{-4}$ at $q = 0.80, 0.90, 0.95$.
+If $C_{p,q} \le 0$ then $R_{p,q}(x) \le 1$ for every $x$. The smallest slack $p - q$ with $C_{p,q} \le 0$ lies in $(4.3\times10^{-3}, 5.0\times10^{-3}]$, $(7.9\times10^{-4}, 1.0\times10^{-3}]$ and $(1.5\times10^{-4}, 2.0\times10^{-4}]$ at $q = 0.80, 0.90, 0.95$; double-precision root finding puts it at $4.4\times10^{-3}$, $8.0\times10^{-4}$ and $1.6\times10^{-4}$.
 \end{corollary}
 
-For split conformal calibration with $K = 110$ and rank $k = 105$, the order statistic certifies $p_k = 0.9036$ with probability $0.96$. Then $C_{0.9036, 0.90} = -0.057$, so the finite-sample procedure never needs widening, and it shrinks the noisy threshold by at least the factor $1 - 0.057x^{1/2}$.
+For split conformal calibration with $K = 110$ and rank $k = 105$, the order statistic certifies $p_k = 0.9036$ with probability $0.96$. Then $-0.0572 \le C_{0.9036, 0.90} \le -0.057$, so the finite-sample procedure never needs widening, and it shrinks the noisy threshold by at least the factor $1 - 0.057x^{1/2}$.
 
 Figure~\ref{fig:boundary} shows $R_{q,q}(x) - 1$. The critical levels at which $R_{q,q} = 1$ are $x^*(q) = 0.034$, $0.017$, $0.0062$ and $0.0012$ for $q = 0.80$, $0.85$, $0.90$ and $0.95$. Below them the noisy threshold must be widened, by at most $0.37\%$, $0.17\%$, $0.063\%$ and $0.012\%$ respectively. Above them it may be shrunk, substantially once $x$ exceeds about $0.05$ (Fig.~\ref{fig:certified}).
 
@@ -142,14 +142,14 @@ We certified $R_{0.90,0.90}$ and $R_{0.9036,0.90}$ on $x \in [0.010, 0.366]$ wit
 
 \subsection{Heterogeneous noise}
 
-With $e_i \sim N(0, D_i)$ and the $D_i$ known, the calibration scores $V_i$ are independent but not identically distributed.
+With $e_i \sim N(0, D_i)$ and the $D_i$ known, the calibration scores $V_i$ are independent but not identically distributed. The following is a case of the comparison of \citet{sen1970} between order statistics of heterogeneous laws and those of their average; we give the short proof.
 
 \begin{proposition}\label{prop:beta}
 Let $T = |V|_{(k)}$, let $\bar F$ be the average distribution function of the $|V_i|$, assumed continuous, and let $p_k$ be the $\delta$-quantile of the Beta$(k, K+1-k)$ distribution. If $k \ge Kp_k + 1$ then $\pr\{\bar F(T) \ge p_k\} \ge 1 - \delta$.
 \end{proposition}
 
 \begin{proof}
-$\bar F(T) < p_k$ exactly when $N = \#\{i : |V_i| < \bar F^{-1}(p_k)\} \ge k$. $N$ is a sum of independent indicators with mean $Kp_k$, and $k - 1 \ge Kp_k$. By \citet[Theorem 5]{hoeffding1956}, $\pr(N \le k-1)$ is minimized when all success probabilities are equal. Hence $\pr(N \ge k) \le \pr\{{\rm Bin}(K, p_k) \ge k\} = \pr\{{\rm Beta}(k, K+1-k) \le p_k\} = \delta$.
+$\bar F(T) < p_k$ exactly when $N = \#\{i : |V_i| < \bar F^{-1}(p_k)\} \ge k$. $N$ is a sum of independent indicators with mean $Kp_k$, and $k - 1 \ge Kp_k$. By \citet{hoeffding1956}, $\pr(N \le k-1)$ is minimized when all success probabilities are equal. Hence $\pr(N \ge k) \le \pr\{{\rm Bin}(K, p_k) \ge k\} = \pr\{{\rm Beta}(k, K+1-k) \le p_k\} = \delta$.
 \end{proof}
 
 On the event of Proposition~\ref{prop:beta}, a new latent residual with law $G$ satisfies the single linear constraint $\int \bar g\, dG \ge p_k$, with the average kernel $\bar g(w) = K^{-1}\sum_i \pr(|w + e_i| \le T)$. Proposition~\ref{prop:reduction} applies, the box bounds hold term by term, and the heterogeneous rule is
@@ -194,7 +194,7 @@ In the finite population \texttt{apipop} \citep{lumley2004}, 110 of 325 school d
 
 \section{Discussion}
 
-The results assume that the latent residual is log-concave and that the noise is Gaussian, independent of the latent residual, and of known variance. Log-concavity is not testable from the noisy scores alone, but it is much weaker than the normality used by Fay--Herriot intervals, which missed the target under a truncated Laplace law. Estimated variances require an outer confidence set for the noise kernel; in simulations with $\chi^2$ variance estimates on 4--10 degrees of freedom, plugging them in kept the reliability target for the heterogeneous rule. The small-noise phenomenon of \S\ref{sec:small} is small in size: its value is that it identifies exactly when noisy calibration is safe without symmetry. The practical gains come from exact use of the heterogeneous noise kernel and the finite-sample slack. The certificates use double-precision closed forms with a margin, not interval arithmetic.
+The results assume that the latent residual is log-concave and that the noise is Gaussian, independent of the latent residual, and of known variance. Log-concavity is not testable from the noisy scores alone, but it is much weaker than the normality used by Fay--Herriot intervals, which missed the target under a truncated Laplace law. Estimated variances require an outer confidence set for the noise kernel; in simulations with $\chi^2$ variance estimates on 4--10 degrees of freedom, plugging them in kept the reliability target for the heterogeneous rule. The small-noise phenomenon of \S\ref{sec:small} is small in size: its value is that it identifies exactly when noisy calibration is safe without symmetry. The practical gains come from exact use of the heterogeneous noise kernel and the finite-sample slack. The constants $c_{p,q}$ and $C_{p,q}$ are certified in ball arithmetic. The branch and bound for $R_{p,q}$ uses double-precision closed forms with a margin, not interval arithmetic.
 
 \appendix
 \section{Proofs}
@@ -203,7 +203,7 @@ The results assume that the latent residual is log-concave and that the noise is
 \[
 \E\, g_x(W_M) \ge \frac{p - p\varepsilon_M}{1 - \varepsilon_M} = p, \qquad \pr(|W_M| < s) \le \frac{q - \gamma}{1-\varepsilon_M} < q
 \]
-for $M$ large. On $K = [-M, M]$ the constraint function $g_x - p$ is continuous, and $\Phi(\mu) = -\mu(-s, s)$ is linear and upper semicontinuous for weak convergence. By \citet{fradelizi2004}, the supremum of $\Phi$ over the log-concave laws on $K$ that satisfy the constraint is attained at a point mass or at a log-affine law on a segment. Hence some $F \in \mathcal F$ is feasible with $F(-s,s) < q$, that is, $Q_q(|F|) \ge s$. The argument uses only continuity of the kernel and its decay at infinity.
+for $M$ large. On $K = [-M, M]$ the constraint function $g_x - p$ is continuous, and $\Phi(\mu) = -\mu(-s, s)$ is linear and upper semicontinuous for weak convergence. By the localization theorem \citep{kannan1995, fradelizi2004}, the supremum of $\Phi$ over the log-concave laws on $K$ that satisfy the constraint is attained at a point mass or at a log-affine law on a segment. Hence some $F \in \mathcal F$ is feasible with $F(-s,s) < q$, that is, $Q_q(|F|) \ge s$. The argument uses only continuity of the kernel and its decay at infinity.
 
 \paragraph{Lemma~\ref{lem:onesided}.} Exponential tails are log-concave, which gives one inequality. Conversely, let $Y \in \LC$ satisfy $\pr(Y + Z \le 0) \ge p$. If $Y = d$ is a point mass then $d \le -\Phi^{-1}(p) = \lim_{u\to\infty}\{b_u(p) - u^{-1}\log(1/q)\}$. Otherwise $F = F_Y$ is continuous and $\log F$ is concave \citep{prekopa1973}. Let $v = F^{-1}(q)$ and $G(y) = F(v+y)$.
 \begin{itemize}
@@ -223,15 +223,31 @@ Take $p' = q + \eta_x$. Since $\pr(|W| \le s) \le F_W(s)$, $Q_q(|W|) \ge 1 + x^{
 
 \paragraph{Certification.} For slopes $\beta' > \beta$ the likelihood ratio $e^{-(\beta'-\beta)y}$ is decreasing, so $Y_{\beta'} \le Y_\beta$ in likelihood-ratio order. For lengths $\ell < \ell'$, truncation gives $F_\ell \ge F_{\ell'}$. The noisy mass is at most $\sup f_W \int g_x = 2\sup f_W$, with $\sup f_W = \beta/(1 - e^{-\beta\ell})$. The location $b$ is feasible only in $[-1 + x^{1/2}\Phi^{-1}(p),\ b_{\max}]$. The lower end holds because $W \le b$. For the upper end, take $k = 7x^{1/2}$. The density of $W$ increases towards $b$, so $\pr(|W| \le 1+k) \le r/(1+r)$ with $r = (2+2k)/(b-1-k)$, and $\pr(|e| > k) = 2\Phi(-7)$.
 
+\paragraph{Ball-arithmetic certificates for $c_{p,q}$ and $C_{p,q}$.} Every deciding inequality is evaluated in Arb ball arithmetic; floating point only proposes points.
+\begin{itemize}
+\item $\kappa_u(b)$ decreases in $b$, and in $u$ because $E$ is stochastically decreasing in its rate. Hence $b_u(p)$ is nonincreasing in $u$, and on $[u_0, u_1]$, $b_u(p) - u^{-1}\log(1/q) \le b_{u_0}(p) - u_1^{-1}\log(1/q)$. A ball with $\kappa_u(b) < p$ proves $b_u(p) < b$.
+\item For $u \ge u_{\max}$ the value is at most $b_{u_{\max}}(p)$. For small $u$, let $b(u) = \{\log(1/p) + u^2/2 - \log(1 - u^3)\}/u$. Then $e^{-ub + u^2/2} = p(1 - u^3)$, and the Mills ratio gives $\Phi(-b) \le pu^3$ whenever $\phi\{\log(1/p)/u\} \le p\,u^2\log(1/p)$. This holds on $(0, u_{\min}]$ once it holds at $u_{\min} \le \log(1/p)/2^{1/2}$, because the left side divided by $u^2$ increases there. So $b_u(p) \le b(u)$, and for $p \ge q$ the resulting bound increases in $u$.
+\item By Lemma~\ref{lem:onesided}, $c_{p',q'} \le \gamma$ if and only if $1 - q' \ge \varphi_\gamma(1 - p')$, where $\varphi_\gamma(a) = \max[0, \sup_u 1 - \exp\{-u(b_u(1-a) - \gamma)\}]$. Hence $C_{p,q} \le \gamma$ if and only if $\varphi_\gamma(a_L) + \varphi_\gamma(a_R) \le 1 - q$ whenever $a_L + a_R = 1 - p$. Since $\varphi_\gamma$ is nondecreasing, it suffices to check this at the ends of an adaptive partition of $a_L$, with $\varphi_\gamma$ bounded above by the same monotone branch and bound in $u$.
+\end{itemize}
+The certificates show $C_{0.9036,0.9} \le -0.057$, and $C_{q+\delta,q} \le 0$ for $(q, \delta) = (0.8, 0.005)$, $(0.9, 0.001)$ and $(0.95, 0.0002)$. Lower bounds $c_{q+\delta,q} > 0$ at $\delta = 0.0043, 0.00079, 0.00015$ come from single points $u$, and $C_{p,q} \ge c_{p,q}$.
+
 \begin{thebibliography}{99}
 \bibitem[Anderson(1955)]{anderson1955} Anderson, T. W. (1955). The integral of a symmetric unimodal function over a symmetric convex set and some probability inequalities. \textit{Proc. Amer. Math. Soc.} \textbf{6}, 170--6.
-\bibitem[Cohen et~al.(2025)]{cohen2025} Cohen, Y., Goldberger, J. \& Tirer, T. (2025). Efficient conformal prediction for regression models under label noise. arXiv:2509.15120.
+\bibitem[Armstrong et~al.(2022)]{armstrong2022} Armstrong, T. B., Koles\'ar, M. \& Plagborg-M{\o}ller, M. (2022). Robust empirical Bayes confidence intervals. \textit{Econometrica} \textbf{90}, 2567--602.
+\bibitem[Bersson \& Hoff(2024)]{bersson2024} Bersson, E. \& Hoff, P. D. (2024). Optimal conformal prediction for small areas. \textit{J. Surv. Statist. Methodol.} \textbf{12}, 1464--88.
+\bibitem[Chatterjee et~al.(2008)]{chatterjee2008} Chatterjee, S., Lahiri, P. \& Li, H. (2008). Parametric bootstrap approximation to the distribution of EBLUP and related prediction intervals in linear mixed models. \textit{Ann. Statist.} \textbf{36}, 1221--45.
+\bibitem[Cohen et~al.(2025)]{cohen2025} Cohen, Y., Goldberger, J. \& Tirer, T. (2025). Efficient conformal prediction for regression models under label noise. arXiv:2509.15120 (version 2, 2026).
 \bibitem[Einbinder et~al.(2024)]{einbinder2024} Einbinder, B.-S., Feldman, S., Bates, S., Angelopoulos, A. N., Gendler, A. \& Romano, Y. (2024). Label noise robustness of conformal prediction. \textit{J. Mach. Learn. Res.} \textbf{25}, 1--66.
 \bibitem[Fay \& Herriot(1979)]{fay1979} Fay, R. E. \& Herriot, R. A. (1979). Estimates of income for small places: an application of James--Stein procedures to census data. \textit{J. Am. Statist. Assoc.} \textbf{74}, 269--77.
 \bibitem[Fradelizi \& Gu\'edon(2004)]{fradelizi2004} Fradelizi, M. \& Gu\'edon, O. (2004). The extreme points of subsets of $s$-concave probabilities and a geometric localization theorem. \textit{Discrete Comput. Geom.} \textbf{31}, 327--35.
+\bibitem[Guille-Escuret \& Ndiaye(2024)]{guille2024} Guille-Escuret, C. \& Ndiaye, E. (2024). From conformal predictions to confidence regions. arXiv:2405.18601.
 \bibitem[Hoeffding(1956)]{hoeffding1956} Hoeffding, W. (1956). On the distribution of the number of successes in independent trials. \textit{Ann. Math. Statist.} \textbf{27}, 713--21.
+\bibitem[Kannan et~al.(1995)]{kannan1995} Kannan, R., Lov\'asz, L. \& Simonovits, M. (1995). Isoperimetric problems for convex bodies and a localization lemma. \textit{Discrete Comput. Geom.} \textbf{13}, 541--59.
 \bibitem[Lumley(2004)]{lumley2004} Lumley, T. (2004). Analysis of complex survey samples. \textit{J. Statist. Software} \textbf{9}, 1--19.
 \bibitem[Pr\'ekopa(1973)]{prekopa1973} Pr\'ekopa, A. (1973). On logarithmic concave measures and functions. \textit{Acta Sci. Math. (Szeged)} \textbf{34}, 335--43.
+\bibitem[Sen(1970)]{sen1970} Sen, P. K. (1970). A note on order statistics for heterogeneous distributions. \textit{Ann. Math. Statist.} \textbf{41}, 2137--9.
+\bibitem[Yoshimori \& Lahiri(2014)]{yoshimori2014} Yoshimori, M. \& Lahiri, P. (2014). A second-order efficient empirical Bayes confidence interval. \textit{Ann. Statist.} \textbf{42}, 1233--61.
+\bibitem[Zhang \& Tuoto(2026)]{zhang2026} Zhang, L.-C. \& Tuoto, T. (2026). Conformal confidence intervals with an application to small area estimation. arXiv:2608.02766.
 \end{thebibliography}
 
 \end{document}

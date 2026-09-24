@@ -57,13 +57,14 @@ class CertifiedShrinkTable:
     Grid points x_i >= .01 carry branch-and-bound certificates U_i (`uai.certify`). For any x
     the lookup returns min over x_i <= x of U_i + c_q sqrt(x - x_i) (THEORY_NOTE Proposition 9),
     together with the closed bound of Theorem 5 (p = q: 1 + c_q sqrt x) or Theorem 5+
-    (p = .9036: 1 + C sqrt x, C = -.05718). Constants are rounded up. Above the feasibility
+    (p = .9036: 1 + C sqrt x, C = -.057). Both constants are proved upper bounds in ball
+    arithmetic (E27, `uai.interval`). Above the feasibility
     edge (P(|e| <= 1) < p) the data contradict the noise level and 1 is returned, as in
     ShrinkTable. Certificates rest on Proposition 1 (extremal family) and double-precision
     closed forms with a 1e-9 margin.
     """
-    C_Q = 0.019062                       # c_.9 = 0.0190618..., rounded up
-    C_SPLIT = {0.9: 0.019062, 0.9036: -0.05718}
+    C_Q = 0.019062                       # c_.9 in [0.01906181, 0.01906188] (E27)
+    C_SPLIT = {0.9: 0.019062, 0.9036: -0.057}   # C_{.9036,.9} in [-0.0571845, -0.057] (E27)
 
     def __init__(self, p=0.9, path=ROOT / 'results' / 'certified_R.csv'):
         import pandas as pd
