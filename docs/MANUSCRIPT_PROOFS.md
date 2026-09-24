@@ -2,15 +2,21 @@
 
 Status labels: [complete], [sketch], [gap]. Notation as in `MANUSCRIPT_CORE.md`: g_x(w) = pr(|w + x^{1/2}Z| ≤ 1), Φ and φ are the standard normal distribution and density functions, and LC is the class of log-concave laws on the real line (including Dirac masses).
 
-## A.1 Proposition 1 (reduction to Diracs and log-affine segments) [sketch]
+## A.1 Proposition 1 (reduction to Diracs and log-affine segments) [complete]
 
-Fix s > 0. R_{p,q}(x) ≤ s if and only if
+Let 𝓕 be the family of Dirac masses and laws with density ∝ e^{βw} on a segment. Since 𝓕 ⊂ LC, it suffices to show that sup over LC is at most sup over 𝓕.
 
-  inf{ μ(−s, s) : μ ∈ LC, ∫ g_x dμ ≥ p } ≥ q.   (A1)
+Let W be log-concave with ∫ g_x dμ_W ≥ p, and let s < Q_q(|W|), so pr(|W| < s) ≤ q − γ for some γ > 0.
 
-Fix M > s + 1. On LC_M, the log-concave laws supported in [−M, M], the constraint ∫ g_x dμ ≥ p is given by a continuous function. The map μ ↦ −μ(−s, s) is linear and upper semicontinuous for weak convergence, because (−s, s) is open. By Fradelizi & Guédon (2004, Theorem 2), the infimum over the constrained set is attained at an extreme point of its convex hull. Such a point is either a Dirac mass or a law with density proportional to e^{βw} on a segment [a, b] ⊂ [−M, M] on which the constraint holds.
+Truncation without loss of level. g_x is continuous and tends to 0 at ±∞. Choose M ≥ s with g_x(w) ≤ p for |w| ≥ M, and let W_M be W conditioned on |W| ≤ M, which is log-concave. With ε_M = pr(|W| > M),
 
-Passing M → ∞ [gap to write out]. Let μ ∈ LC be feasible, and let μ_M be μ conditioned on [−M, M], which is log-concave. Then |∫ g_x dμ_M − ∫ g_x dμ| ≤ 2μ(ℝ∖[−M, M]) → 0, and μ_M(−s, s) → μ(−s, s). So the infimum in (A1) over LC is the limit of infima over LC_M at constraint level p − ε_M. Right-continuity of the extremal-family value in p then closes the argument; this still has to be written. The family found does not depend on s, so R equals the supremum of Q_q(|W|) over that family.
+  E g_x(W_M) ≥ {p − pε_M}/(1 − ε_M) = p,  pr(|W_M| < s) ≤ (q − γ)/(1 − ε_M) < q
+
+for M large. Conditioning removes only mass where g_x is below p, so the constraint survives at the same level.
+
+Localisation. On K = [−M, M], f = g_x − p is continuous and Φ(μ) = −μ(−s, s) is linear and upper semicontinuous for weak convergence, because (−s, s) is open. By Fradelizi & Guédon (2004, Discrete Comput. Geom. 31, 327–335, with s = 0), the supremum of Φ over the log-concave laws on K with ∫ f dμ ≥ 0 is attained at a Dirac mass or a log-affine law on a segment. Hence some F ∈ 𝓕 has ∫ g_x dF ≥ p and F(−s, s) < q, so that Q_q(|F|) ≥ s. Since s < Q_q(|W|) was arbitrary, the claim follows. □
+
+The same proof applies to the mixture kernel ḡ of §4, which is also continuous and vanishes at infinity.
 
 ## A.2 Proposition 2 (closed form) [complete]
 
@@ -86,7 +92,7 @@ Since pr(|W| ≤ s) ≤ F_W(s) and F_W is strictly increasing near its q-quantil
 
 Let W be log-concave and feasible at noise x + h, and write e_{x+h} = e_x + e_h with independent summands. W′ = W + e_h is log-concave (Prékopa) and pr(|W′ + e_x| ≤ 1) ≥ p, so t = Q_q(|W′|) ≤ R_{p,q}(x). Since pr(|W + e_h| ≤ t) ≥ q, Theorem 5 at scale t gives Q_q(|W|) ≤ t R_{q,q}(h/t²) ≤ t + c_q h^{1/2}. For a noise mixture in which every component variance increases by h, the same argument applies, because adding an independent e_h to the mixture adds h to every component. □
 
-## A.9 Proposition 10 (box bounds) [complete; relies on Proposition 1]
+## A.9 Proposition 10 (box bounds) [complete]
 
 Stochastic order. For Y with density ∝ e^{−βy} on [0, ℓ]:
 - The likelihood ratio between slopes β′ > β is e^{−(β′−β)y}, which is decreasing, so Y_{β′} ≤_lr Y_β.
