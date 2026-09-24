@@ -113,12 +113,12 @@ The proof of Lemma~\ref{lem:onesided} uses only the concavity of $\log F_Y$ at t
 
 The class $\mathcal B$ allows multimodal densities. Only the small-noise bound and the slack result transfer: the localization of Proposition~\ref{prop:reduction} and the certified values of \S\ref{sec:procedure} use log-concavity of the density. Thus, with homogeneous noise and $p_k - q \ge 10^{-3}$ at $q = 0.9$, the noisy threshold itself covers a bi-log-concave latent residual with probability at least $q$ on the order-statistic event.
 
-Figure~\ref{fig:boundary} shows $R_{q,q}(x) - 1$. Grid maximization, which bounds $R_{q,q}$ from below, puts the critical levels at which $R_{q,q} = 1$ at $x^*(q) \approx 0.034$, $0.017$, $0.0062$ and $0.0012$ for $q = 0.80$, $0.85$, $0.90$ and $0.95$. Below them the noisy threshold must be widened. The largest widening found is $0.37\%$, $0.17\%$, $0.063\%$ and $0.012\%$ respectively; the proved bound is $c_qx^{1/2}$. Above them it may be shrunk, substantially once $x$ exceeds about $0.05$ (Fig.~\ref{fig:certified}).
+Figure~\ref{fig:boundary} shows $R_{q,q}(x) - 1$. Grid maximization, which bounds $R_{q,q}$ from below, puts the critical levels at which $R_{q,q} = 1$ at $x^*(q) \approx 0.034$, $0.017$, $0.0062$ and $0.0012$ for $q = 0.80$, $0.85$, $0.90$ and $0.95$. Below them the noisy threshold must be widened. The largest widening found is $0.37\%$, $0.17\%$, $0.063\%$ and $0.012\%$ respectively; the proved bound is $c_qx^{1/2}$. Grid values below $1$ do not by themselves show that shrinking is safe, because they bound $R_{q,q}$ from below. The certified upper bounds of \S\ref{sec:procedure} do: at $q = 0.9$ they fall below $1$ from $x = 0.013$ on and reach $0.973$ at $x = 0.05$ (Fig.~\ref{fig:certified}); with the order-statistic level $p = 0.9036$ they are below $1$ for every $x$ by Corollary~\ref{cor:slack}.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.75\textwidth]{fig_boundary.pdf}
-\caption{Sharp latent radius relative to the noisy threshold, $100\{R_{q,q}(x) - 1\}$, for four coverage levels, computed by grid maximization over the extremal family, which bounds $R_{q,q}$ from below. Above zero the noisy threshold must be widened; below zero it may be shrunk.}
+\caption{Sharp latent radius relative to the noisy threshold, $100\{R_{q,q}(x) - 1\}$, for four coverage levels, computed by grid maximization over the extremal family, which bounds $R_{q,q}$ from below. Values above zero show that the noisy threshold must be widened. Values below zero are not by themselves a proof that shrinking is safe; certified upper bounds are in Fig.~\ref{fig:certified}.}
 \label{fig:boundary}
 \end{figure}
 
@@ -198,7 +198,7 @@ Plugging in the lower end $\ell$ alone would not be justified, since $R$ can inc
 
 The target is $\pr_{\mathcal D}\{\pr(W_{\rm new} \in C \mid \mathcal D) \ge 0.90\} \ge 0.95$, with $K = 110$ calibration areas, $\mathrm{var}(W) = 1$ and heterogeneous known noise variances $D_i = 0.577\,L_i/E(L_i)$, $L_i$ lognormal with log-scale $0.7$. Conditional coverage is computed exactly from closed-form latent distribution functions, with 150 replications per law, so the Monte Carlo standard error of a reliability is about $0.018$; for instance $145/150 = 0.967$ has the 95\% binomial interval $[0.924, 0.989]$. The guarantee comes from the theory; the simulation shows widths and failure patterns. Table~\ref{tab:synth} compares four rules:
 \begin{itemize}
-\item a shape-free rule in the spirit of \citet{zheng2026}: on the order-statistic event $\int \bar g_T\,dG \ge p_k$, so by Markov's inequality $\pr\{\bar g_T(W) < 1 - c\} \le 1 - q$ for $c = (1 - p_k)/(1 - q)$, and the radius is $Tr$ with $\bar g_T(r) = 1 - c$; it needs no shape assumption, and $c = 1/2$ gives the bound of \citet{guille2024}; rank $k = 108$, the best fixed rank among $106$--$110$;
+\item a shape-free rule in the spirit of \citet{zheng2026}: on the order-statistic event $\int \bar g_T\,dG \ge p_k$, and $\bar g_T \le \bar g_T(0)$, so Markov's inequality applied to $\bar g_T(0) - \bar g_T(W) \ge 0$ gives $\pr\{\bar g_T(W) < \tau\} \le 1 - q$ for $\tau = \{p_k - q\,\bar g_T(0)\}/(1 - q)$, and the radius is $Tr$ with $\bar g_T(r) = \tau$; it needs no shape assumption, and with $1$ in place of $\bar g_T(0)$ it contains the bound of \citet{guille2024}; rank $k = 107$, the best fixed rank among $106$--$110$;
 \item the Fay--Herriot tolerance interval with a parametric bootstrap;
 \item noisy split conformal at rank $105$;
 \item the log-concave rule with the mean variance plugged into the certified $R_{0.9068,0.9}$, which has no guarantee under heterogeneous noise;
@@ -214,15 +214,15 @@ The target is $\pr_{\mathcal D}\{\pr(W_{\rm new} \in C \mid \mathcal D) \ge 0.90
 \toprule
 latent law & shape-free & Fay--Herriot & noisy conformal & mean $D$ & heterogeneous \\
 \midrule
-normal & 1.000 (5.94) & 0.960 (3.93) & 1.000 (4.96) & 0.980 (4.46) & 0.980 (4.45) \\
-Laplace & 1.000 (6.46) & 0.927 (3.96) & 1.000 (5.15) & 0.987 (4.68) & 0.987 (4.66) \\
-centred gamma(2) & 1.000 (6.43) & 1.000 (3.95) & 1.000 (4.97) & 1.000 (4.46) & 1.000 (4.45) \\
-truncated Laplace & 1.000 (5.97) & 0.847 (3.89) & 1.000 (4.93) & 0.973 (4.43) & 0.967 (4.42) \\
+normal & 1.000 (5.92) & 0.960 (3.93) & 1.000 (4.96) & 0.980 (4.46) & 0.980 (4.45) \\
+Laplace & 1.000 (6.29) & 0.927 (3.96) & 1.000 (5.15) & 0.987 (4.68) & 0.987 (4.66) \\
+centred gamma(2) & 1.000 (6.16) & 1.000 (3.95) & 1.000 (4.97) & 1.000 (4.46) & 1.000 (4.45) \\
+truncated Laplace & 1.000 (5.89) & 0.847 (3.89) & 1.000 (4.93) & 0.973 (4.43) & 0.967 (4.42) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Every heterogeneous radius was certified, at relative tolerance $10^{-3}$ in 368 of 600 data sets, $3\times10^{-3}$ in 222 and $10^{-2}$ in 10, so the shape-free fallback was never used. Certification costs $0.2\%$ of width against the uncertified grid value. Both log-concave rules use the order-statistic level $p_k = 0.9068$ of $\delta = 0.05$. The certified heterogeneous rule meets the target for all four laws. It is only $0.3\%$ shorter than the mean-variance plug-in, so the exact kernel buys validity rather than width here. The order-statistic level accounts for most of the gain over the $p = q$ table: $3.0\%$ of width, of which $1.2\%$ comes from raising $p$ from $0.9036$ to $0.9068$. The heterogeneous rule is $9.5$--$10.5\%$ shorter than noisy conformal and $25$--$31\%$ shorter than the shape-free rule, which is what log-concavity buys here; noisy conformal itself has no latent guarantee without a shape assumption. It is $12.5$--$18\%$ longer than the Fay--Herriot tolerance interval, which misses the target under the truncated Laplace law ($0.847$) and falls short under the Laplace law by about $1.3$ standard errors ($0.927$).
+Every heterogeneous radius was certified, at relative tolerance $10^{-3}$ in 368 of 600 data sets, $3\times10^{-3}$ in 222 and $10^{-2}$ in 10, so the shape-free fallback was never used. Certification costs $0.2\%$ of width against the uncertified grid value. Both log-concave rules use the order-statistic level $p_k = 0.9068$ of $\delta = 0.05$. The certified heterogeneous rule meets the target for all four laws. It is only $0.3\%$ shorter than the mean-variance plug-in, so the exact kernel buys validity rather than width here. The order-statistic level accounts for most of the gain over the $p = q$ table: $3.0\%$ of width, of which $1.2\%$ comes from raising $p$ from $0.9036$ to $0.9068$. The heterogeneous rule is $9.5$--$10.5\%$ shorter than noisy conformal and $25$--$28\%$ shorter than the shape-free rule; this is the gain of the log-concave rules over this particular shape-free baseline, not a bound on what any shape-free rule can achieve; noisy conformal itself has no latent guarantee without a shape assumption. It is $12.5$--$18\%$ longer than the Fay--Herriot tolerance interval, which misses the target under the truncated Laplace law ($0.847$) and falls short under the Laplace law by about $1.3$ standard errors ($0.927$).
 
 \paragraph{Estimated variances.} Areas have $n_i$ normal units, so $D_i = \sigma_i^2/n_i$ and the within-area variances are independent of the direct estimates; $K = 110$, mean $D = 0.577$, 100 replications per setting and law (normal, Laplace, truncated Laplace). The rule of \S\ref{sec:estimated} uses $\delta = 0.04$ and $\eta = 0.01$, split as $0.009$ below and $0.001$ above the pooled interval for $\sigma^2$, and needs 18 grid points on average. The radii below use converged grid values at those points, not certified upper bounds. For the first 30 data sets of every setting and law (270 in all) the rule was rerun with certified upper bounds $U_j$ at every grid point, as Lemma~\ref{lem:dominate} requires: every data set was certified, and the half-width grew by $0.14\%$ on average and by at most $1.0\%$, at about 3.6 minutes per data set on one core.
 \begin{itemize}
