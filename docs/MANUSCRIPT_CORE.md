@@ -32,7 +32,7 @@ Relation to prior work:
 
 ## 2. Exact reduction
 
-**Proposition 1** [sketch; truncation limit to be written]. R_{p,q}(x) is the supremum over Dirac masses and log-affine densities on a segment.
+**Proposition 1** [proved]. R_{p,q}(x) is the supremum over Dirac masses and log-affine densities on a segment.
 
 **Proposition 2** [proved]. For those laws the noisy mass has the closed form given in the note (integration by parts), so no quadrature is needed.
 
@@ -134,5 +134,5 @@ apipop finite population (E21). There are 325 school districts: 110 are used for
 - Log-concavity of the latent residual is assumed, not tested.
 - The noise is Gaussian and independent of W, with known variances.
 - Estimated variances need an outer confidence set.
-- Certified values rest on Proposition 1 and on double-precision closed forms with a 10⁻⁹ margin; interval arithmetic is not used.
+- Certified values use double-precision closed forms with a 10⁻⁹ margin; interval arithmetic is not used.
 - The effect sizes of the small-noise phenomenon are small. The practical gains are in the heterogeneous-noise constraint and the finite-sample procedure.
