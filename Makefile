@@ -51,6 +51,8 @@ theory: data
 	$(PY) experiments/e28_level_decomposition.py
 	$(PY) experiments/e29_estimated_scale.py 100 $(PROCS)
 	$(PY) experiments/e30_areawise_variance.py 30 $(PROCS)
+	$(PY) experiments/e29_estimated_scale.py 30 $(PROCS) cert
+	$(PY) experiments/e31_shape_free.py
 
 all: quick tables apipop conditional theory
 	$(PY) experiments/e02_design_mixing.py
