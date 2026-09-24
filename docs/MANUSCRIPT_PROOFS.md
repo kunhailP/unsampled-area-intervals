@@ -1,3 +1,5 @@
+> **Superseded (2026-09-24).** The current manuscript is [`paper/main.tex`](../paper/main.tex), and the current status of every claim is in [`FINDINGS.md`](FINDINGS.md). This early Markdown draft is kept for history only; some statements here were later corrected (e.g. C44–C49, C54).
+
 # Appendix draft: proofs
 
 Status labels: [complete], [sketch], [gap]. Notation as in `MANUSCRIPT_CORE.md`: g_x(w) = pr(|w + x^{1/2}Z| ≤ 1), Φ and φ are the standard normal distribution and density functions, and LC is the class of log-concave laws on the real line (including Dirac masses).

@@ -1,3 +1,5 @@
+> **Superseded (2026-09-24).** The current manuscript is [`paper/main.tex`](../paper/main.tex), and the current status of every claim is in [`FINDINGS.md`](FINDINGS.md). This early Markdown draft is kept for history only; some statements here were later corrected (e.g. C44–C49, C54).
+
 # Draft core (Biometrika Miscellanea candidate)
 
 Status: working draft, 2026-09-24. Every claim carries its status from `docs/THEORY_NOTE.md`. Parts marked [open] are not yet proved and must not be stated as theorems.
