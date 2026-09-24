@@ -237,3 +237,33 @@ def test_envelope_dominates_lookup_to_the_right():
         look = np.array([tab(x) for x in xs])
         for i in range(0, 400, 23):
             assert tab.envelope(xs[i]) >= look[i:].max() - 1e-12
+
+
+def test_quantised_kernel_merges_equal_variances():
+    from uai.procedures import quantised_kernel
+    (pts, wts), eps = quantised_kernel(np.r_[np.full(60, .1), np.full(50, .2)])
+    assert eps == 0.0 and np.allclose(pts, [.1, .2]) and np.allclose(wts, [60 / 110, 50 / 110])
+
+
+def test_scale_lemma_on_grid_values():
+    """Lemma 12: R(lambda x) <= sqrt(lambda) R(x), checked on converged grid values."""
+    from uai.procedures import shrink_mix
+    xs, w = np.array([.05, .15]), np.array([.5, .5])
+    r1 = shrink_mix(.9036, .9, xs, wts=w)
+    for lam in (1.1, 1.5, 3.0):
+        assert shrink_mix(.9036, .9, lam * xs, wts=w) <= np.sqrt(lam) * r1 + 1e-9
+
+
+def test_areawise_envelope_dominates_true_kernel():
+    """Model H: on the event that every area-wise interval covers, u >= gbar pointwise."""
+    from scipy.special import ndtr
+    from uai.estimated import h_kernel
+    rng = np.random.default_rng(0)
+    D = rng.uniform(.1, 1, 40); Dh = D * rng.chisquare(20, 40) / 20; T = 2.0
+    w, u, ns = h_kernel(Dh, 20, T, alpha=1e-9, eta=.5)
+    from scipy import stats
+    L = 20 * Dh / stats.chi2.ppf(1 - 5e-10, 20); U = 20 * Dh / stats.chi2.ppf(5e-10, 20)
+    assert np.all((L <= D) & (D <= U))
+    x = D[:, None] / T**2
+    g = (ndtr((1 - w) / np.sqrt(x)) - ndtr((-1 - w) / np.sqrt(x))).mean(0)
+    assert np.all(u >= g - 1e-12)

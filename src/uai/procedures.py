@@ -224,8 +224,9 @@ def quantised_kernel(xs, n_pts=32):
     C^2 function between two grid points exceeds the larger endpoint value by at most M h^2/8)."""
     from scipy.special import ndtr
     xs = np.sort(np.asarray(xs, dtype=float))
-    if len(xs) <= n_pts:
-        return (xs, np.full(len(xs), 1 / len(xs))), 0.0
+    uniq, counts = np.unique(xs, return_counts=True)
+    if len(uniq) <= n_pts:                            # exact: equal variances merged
+        return (uniq, counts / len(xs)), 0.0
     tiny = xs < 1e-3                                  # near-indicator kernels: kept exactly
     groups = [xs[i:i + 1] for i in np.where(tiny)[0]] + \
         [g for g in np.array_split(xs[~tiny], max(n_pts - tiny.sum(), 1)) if len(g)]
