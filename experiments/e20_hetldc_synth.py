@@ -7,7 +7,8 @@ versus the exact average kernel. Target Pr_D[Pr(W_new in C | D) >= .90] >= .95; 
 coverage from closed-form CDFs (src/uai/latent_laws.py).
 Rules: FH_normal, FH_PAC (bootstrap tolerance), CP_PAC (k = 105), LDC_PAC (k = 105, mean-D
 Gaussian kernel, E04 table), HetLDC (k = 105, exact average kernel, grid value), and with
-certified radii (E24-E26): LDC_cert_pk (certified R_{.9036,.9} table) and HetLDC_cert
+certified radii (E24-E26): LDC_cert_pk (mean variance in the certified R_{.9068,.9} table,
+the same level p_k = .9068 as HetLDC) and HetLDC_cert
 (branch-and-bound certificate for the mixture kernel; union bound if none clears).
   python experiments/e20_hetldc_synth.py [reps] [procs] [ldc]
 With a third argument `ldc`, only LDC_cert_pk is recomputed (same seeds) and patched into the
