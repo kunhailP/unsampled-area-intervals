@@ -157,3 +157,36 @@ def test_certified_lookup_dominates_grid_values():
     for x, r in zip(e.x, e.R):
         if np.isfinite(r) and x < tab.x_edge:
             assert r <= tab(x) + 1e-12
+
+
+def test_interval_c_enclosure_contains_float_value():
+    """Ball-arithmetic enclosure of c_.9 (E27) brackets the double-precision value."""
+    from uai.extremal import one_sided_constant
+    from uai.interval import c_enclosure
+    lo, hi, _ = c_enclosure('0.9', '0.9', n0=200, max_iter=3000)
+    assert lo <= one_sided_constant(.9, .9) <= hi and hi - lo < 1e-3
+
+
+def test_interval_b_bounds_and_monotone_in_u():
+    """b_u(p) is enclosed and nonincreasing in u (kappa_u(b) decreases in u)."""
+    from uai.interval import A, b_bounds, kappa
+    p = A('0.9')
+    prev = np.inf
+    for u in (0.05, 0.3, 1.0, 4.0, 20.0):
+        lo, hi = b_bounds(u, p)
+        assert lo < hi and hi <= prev + 1e-12
+        prev = hi
+        assert kappa(u, lo) > p and kappa(u, hi) < p
+    assert kappa(2.0, 0.3) < kappa(1.0, 0.3)
+
+
+def test_interval_constants_file():
+    """E27 certificates: C_{.9036,.9} <= -0.057 and the slack brackets."""
+    d = json.loads((ROOT / 'results' / 'interval_constants.json').read_text())
+    assert all(s['ok'] for s in d['split'])
+    assert any(s['g'] == -0.057 for s in d['split'])
+    for q, s in d['slack'].items():
+        assert s['enough']['ok'] and s['not_enough']['positive']
+    from uai.procedures import CertifiedShrinkTable
+    assert CertifiedShrinkTable.C_Q >= d['c']['0.9'][1]
+    assert CertifiedShrinkTable.C_SPLIT[0.9036] >= -0.057
