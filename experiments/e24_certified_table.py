@@ -5,8 +5,11 @@ endpoint values, polished by Nelder-Mead) and a certified upper bound U (monoton
 bound, `uai.certify`, first relative tolerance in TOLS that clears). Between grid points the
 lookup uses R(x + h) <= R(x) + c_q sqrt(h) (THEORY_NOTE Proposition 9); below x = .01 it uses
 Theorem 5 / 5+.
-  python experiments/e24_certified_table.py [procs] [step]
-Writes results/certified_R.csv.
+  python experiments/e24_certified_table.py [procs] [step] [x_lo] [x_hi] [p,p,...]
+Writes results/certified_R.csv, merged with existing rows (same p and x are replaced), so a
+second run over a new x range extends the table. The default range is [.010, .366]; the
+table was extended to [.002, .0095] by `e24_certified_table.py 14 5e-4 0.002 0.0095`, and
+p = .9068 (Beta(105, 6) quantile at delta = .05) added by `... 14 5e-4 0.002 0.366 0.9068`.
 """
 import sys
 import time
@@ -59,15 +62,24 @@ def one(args):
 if __name__ == '__main__':
     procs = int(sys.argv[1]) if len(sys.argv) > 1 else 8
     step = float(sys.argv[2]) if len(sys.argv) > 2 else 5e-4
-    xs = np.round(np.arange(0.010, 0.3665, step), 6)
-    jobs = [(p, x) for p in PS for x in xs]
+    x_lo = float(sys.argv[3]) if len(sys.argv) > 3 else 0.010
+    x_hi = float(sys.argv[4]) if len(sys.argv) > 4 else 0.366
+    ps = [float(v) for v in sys.argv[5].split(',')] if len(sys.argv) > 5 else PS
+    xs = np.round(np.arange(x_lo, x_hi + step / 2, step), 6)
+    jobs = [(p, x) for p in ps for x in xs]
     with Pool(procs) as pool:
         rows = []
         for i, r in enumerate(pool.imap_unordered(one, jobs, chunksize=1)):
             rows.append(r)
             if i % 50 == 0:
                 print(i, len(jobs), r, flush=True)
-    d = pd.DataFrame(rows).sort_values(['p', 'x'])
-    d.to_csv(RESULTS / 'certified_R.csv', index=False)
+    d = pd.DataFrame(rows)
+    out = RESULTS / 'certified_R.csv'
+    if out.exists():
+        old = pd.read_csv(out)
+        keep = ~old.set_index(['p', 'x']).index.isin(d.set_index(['p', 'x']).index)
+        d = pd.concat([old[keep], d])
+    d = d.sort_values(['p', 'x'])
+    d.to_csv(out, index=False)
     print(d.groupby('p').agg(n=('x', 'size'), certified=('U', lambda u: np.isfinite(u).mean()),
                              max_gap=('tol', 'max'), med_gap=('tol', 'median')))

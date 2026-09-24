@@ -9,7 +9,9 @@ Rules: FH_normal, FH_PAC (bootstrap tolerance), CP_PAC (k = 105), LDC_PAC (k = 1
 Gaussian kernel, E04 table), HetLDC (k = 105, exact average kernel, grid value), and with
 certified radii (E24-E26): LDC_cert_pk (certified R_{.9036,.9} table) and HetLDC_cert
 (branch-and-bound certificate for the mixture kernel; union bound if none clears).
-  python experiments/e20_hetldc_synth.py [reps] [procs]
+  python experiments/e20_hetldc_synth.py [reps] [procs] [ldc]
+With a third argument `ldc`, only LDC_cert_pk is recomputed (same seeds) and patched into the
+existing CSV; the other rules, including the slow HetLDC certificates, are kept.
 Writes results/hetldc_synth.csv (per replication) and results/hetldc_synth_summary.csv.
 """
 import sys
@@ -47,19 +49,37 @@ def one(args):
     ints = {'FH_normal': (mu, z * se), 'FH_PAC': (mu, lam * se), 'CP_PAC': (0, T),
             'LDC_PAC': (0, T * table(D.mean() / T**2)), 'HetLDC': (0, parts[0] * parts[4])}
     if CERTIFY:
-        # p_k = .9068 at delta = .05 >= .9036, so the certified p = .9036 table is valid here
-        ints['LDC_cert_pk'] = (0, T * CertifiedShrinkTable(0.9036)(D.mean() / T**2))
+        # certified table at p = .9068 <= p_k(delta = .05), the level HetLDC uses as well
+        ints['LDC_cert_pk'] = (0, T * CertifiedShrinkTable(0.9068)(D.mean() / T**2))
         ints['HetLDC_cert'] = (0, het_cert)
     return [dict(shape=shape, seed=seed, method=m, centre=c, half=h, cert_tol=tol,
                  cov=float(cdf(shape, c + h) - cdf(shape, c - h))) for m, (c, h) in ints.items()]
+
+
+def one_ldc(args):
+    """LDC_cert_pk only, from the same data as `one` (the draws before the FH bootstrap)."""
+    shape, seed = args
+    rng = np.random.default_rng(seed)
+    w = rng.lognormal(0, .7, K); D = DBAR * w / np.exp(.7**2 / 2)
+    V = draw(shape, K, rng) + rng.normal(0, np.sqrt(D))
+    T = conformal_threshold(V, pac_rank(K, LEV, .05))
+    h = T * CertifiedShrinkTable(0.9068)(D.mean() / T**2)
+    return dict(shape=shape, seed=seed, method='LDC_cert_pk', centre=0.0, half=h, cert_tol=np.nan,
+                cov=float(cdf(shape, h) - cdf(shape, -h)))
 
 
 if __name__ == '__main__':
     reps = int(sys.argv[1]) if len(sys.argv) > 1 else 150
     procs = int(sys.argv[2]) if len(sys.argv) > 2 else 8
     jobs = [(s, 40000 + 1000 * i + r) for i, s in enumerate(SHAPES) for r in range(reps)]
-    with Pool(procs) as pool:
-        r = pd.DataFrame([row for rows in pool.imap_unordered(one, jobs, chunksize=2) for row in rows])
+    if len(sys.argv) > 3 and sys.argv[3] == 'ldc':
+        with Pool(procs) as pool:
+            new = pd.DataFrame(pool.map(one_ldc, jobs, chunksize=4))
+        old = pd.read_csv(RESULTS / 'hetldc_synth.csv')
+        r = pd.concat([old[old.method != 'LDC_cert_pk'], new]).sort_values(['shape', 'seed', 'method'])
+    else:
+        with Pool(procs) as pool:
+            r = pd.DataFrame([row for rows in pool.imap_unordered(one, jobs, chunksize=2) for row in rows])
     r.to_csv(RESULTS / 'hetldc_synth.csv', index=False)
     s = r.groupby(['shape', 'method']).agg(reps=('cov', 'size'), mean_cov=('cov', 'mean'),
                                           pr_cov_ge_90=('cov', lambda c: np.mean(c >= LEV)),

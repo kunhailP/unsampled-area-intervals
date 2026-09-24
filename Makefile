@@ -39,13 +39,16 @@ theory: data
 	$(PY) experiments/e18_hetero_kernel.py $(PROCS)
 	$(PY) experiments/e19_boundary_map.py $(PROCS)
 	$(PY) experiments/fig_boundary_map.py
-	$(PY) experiments/e20_hetldc_synth.py 150 $(PROCS)
 	$(PY) experiments/e21_hetldc_apipop.py 120 $(PROCS)
 	$(PY) experiments/e22_estimated_variance.py 120 $(PROCS)
 	$(PY) experiments/e23_allocation.py $(PROCS)
 	$(PY) experiments/e24_certified_table.py $(PROCS)
+	$(PY) experiments/e24_certified_table.py $(PROCS) 5e-4 0.002 0.0095 0.9,0.9036
+	$(PY) experiments/e24_certified_table.py $(PROCS) 5e-4 0.002 0.366 0.9068
+	$(PY) experiments/e20_hetldc_synth.py 150 $(PROCS)
 	$(PY) experiments/e25_certified_ldc.py 2000 $(PROCS)
 	$(PY) experiments/e27_interval_constants.py $(PROCS)
+	$(PY) experiments/e28_level_decomposition.py
 
 all: quick tables apipop conditional theory
 	$(PY) experiments/e02_design_mixing.py
