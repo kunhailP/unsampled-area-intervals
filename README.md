@@ -12,7 +12,8 @@ claim — proved, certified, numerical only, already in the literature, or refut
 Scope of the guarantees: known, fixed Gaussian noise variances independent of the latent
 residual; calibration and new residuals i.i.d. from one log-concave law (bi-log-concave for the
 small-noise and slack results); coverage of a new random area, conditional on the calibration
-sample. Estimated variances, dependence between residuals and variances, and design-based
+sample. Estimated variances are covered under a pooled variance-scale model (rule S, C50–C51);
+area-wise variance estimates, dependence between residuals and variances, and design-based
 coverage of a fixed finite population are outside the theory (experiments only).
 
 ## What is here
@@ -33,6 +34,7 @@ coverage of a fixed finite population are outside the theory (experiments only).
 | Certified upper bounds of R_{p,.9}, p = .9, .9036, .9068 (monotone branch and bound, double precision with margin); certified LDC and HetLDC | `src/uai/certify.py`, `e24`–`e26`, `e20` | certified up to floating point (C39–C41) |
 | Ball-arithmetic enclosures of c_q and C_{p,q} (Arb, outward rounding) | `src/uai/interval.py`, `e27` | certified (C42, C46) |
 | Level vs exact-kernel decomposition of the HetLDC gain | `e28` | at matched level the exact kernel is 0.3% shorter (C45) |
+| Estimated variances: kernel-domination and scale lemmas; rule S (pooled variance scale) and area-wise envelope H | `src/uai/estimated.py`, `e29`, `e30` | S keeps 70–83% of the known-variance gain with a guarantee; H needs ~50+ d.f. per area (C50–C52) |
 
 ## Reproduce
 

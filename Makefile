@@ -49,6 +49,8 @@ theory: data
 	$(PY) experiments/e25_certified_ldc.py 2000 $(PROCS)
 	$(PY) experiments/e27_interval_constants.py $(PROCS)
 	$(PY) experiments/e28_level_decomposition.py
+	$(PY) experiments/e29_estimated_scale.py 100 $(PROCS)
+	$(PY) experiments/e30_areawise_variance.py 30 $(PROCS)
 
 all: quick tables apipop conditional theory
 	$(PY) experiments/e02_design_mixing.py
