@@ -287,10 +287,11 @@ def hetldc_certified(V, D, k=None, q=0.90, delta=0.05, n_pts=32, parts=None,
 def shape_free_markov(V, D, k, q=0.90, delta=0.05):
     """Shape-free PAC radius in the spirit of LatentCP (Zheng, Zhou & Zhu 2026): no assumption on
     the latent law beyond independence of the Gaussian noise (known D_i). On the order-statistic
-    event, int gbar_T dG >= p_k, so by Markov P(gbar_T(W) < 1 - c) <= (1 - p_k)/c = 1 - q with
-    c = (1 - p_k)/(1 - q) (needs p_k > q). gbar_T is symmetric and decreasing in |w|, so the set
-    {gbar_T >= 1 - c} is [-r, r]. c = 1/2 recovers the 1 - 2 alpha bound of Guille-Escuret &
-    Ndiaye (2024). Returns (half-width T r, p_k, T)."""
+    event, int gbar_T dG >= p_k. With m = gbar_T(0) = max gbar_T, Y = m - gbar_T(W) >= 0 has
+    E Y <= m - p_k, so by Markov P(gbar_T(W) < t) <= (m - p_k)/(m - t) = 1 - q at
+    t = (p_k - q m)/(1 - q) (needs p_k > q m). gbar_T is symmetric and decreasing in |w|, so the
+    set {gbar_T >= t} is [-r, r]. Using 1 in place of m (the weaker version) and c = 1/2 recovers
+    the 1 - 2 alpha bound of Guille-Escuret & Ndiaye (2024). Returns (half-width T r, p_k, T)."""
     from scipy.optimize import brentq
     from scipy.special import ndtr
     V, D = np.asarray(V), np.asarray(D)
@@ -298,10 +299,11 @@ def shape_free_markov(V, D, k, q=0.90, delta=0.05):
     p_k = stats.beta.ppf(delta, k, K + 1 - k)
     assert k >= K * p_k + 1 and p_k > q
     T = np.sort(np.abs(V))[k - 1]
-    c = (1 - p_k) / (1 - q)
     sd = np.sqrt(D) / T
     gbar = lambda w: np.mean(ndtr((1 - w) / sd) - ndtr((-1 - w) / sd))
-    if gbar(0.0) < 1 - c:
+    m = gbar(0.0)
+    thr = (p_k - q * m) / (1 - q)
+    if thr <= 0 or m <= thr:
         return np.inf, p_k, T
-    r = brentq(lambda w: gbar(w) - (1 - c), 0.0, 1 + 10 * sd.max(), xtol=1e-12)
+    r = brentq(lambda w: gbar(w) - thr, 0.0, 1 + 10 * sd.max(), xtol=1e-12)
     return T * r, p_k, T

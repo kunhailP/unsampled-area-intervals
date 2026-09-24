@@ -1,7 +1,7 @@
 """E31. Shape-free baseline in the spirit of LatentCP (Zheng, Zhou & Zhu 2026) on the E20 data.
 
 For each E20 data set (same seeds), `procedures.shape_free_markov` with the known D_i and ranks
-k = 106..110 (delta = .05): radius T r with gbar_T(r) = 1 - (1 - p_k)/(1 - q). It needs no shape
+k = 106..110 (delta = .05): radius T r with gbar_T(r) = (p_k - q gbar_T(0))/(1 - q). It needs no shape
 assumption on the latent law (Markov's inequality), only independent Gaussian noise with known
 variances. The rank must be fixed in advance; the table reports every k.
   python experiments/e31_shape_free.py
