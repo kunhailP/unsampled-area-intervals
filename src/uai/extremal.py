@@ -399,3 +399,61 @@ def noisy_abs_quantile(q, a, b, beta, x):
     mass = lambda t: noisy_cdf(t, a, b, beta, x) - noisy_cdf(-t, a, b, beta, x)
     hi = max(abs(a), abs(b)) + 12 * np.sqrt(x)
     return brentq(lambda t: mass(t) - q, 0.0, hi, xtol=1e-15, rtol=1e-15)
+
+
+# ---------------------------------------------------------------------------------------------
+# Noise-dominated regime (THEORY_NOTE 2D, FINDINGS C59-C60). As x increases to the feasibility
+# edge x_p = 1/z^2, z = Phi^{-1}{(1 + p)/2}, R_{p,q}(x) ~ M_q (x_p - x)^{1/2}, where
+#   M_q = sup{ Q_q(|W|) / E(W^2)^{1/2} : W log-concave }.
+# Heterogeneous noise: the latent variance budget c* solves mean_i g_{x_i + c}(0) = p, and
+# M_q c*^{1/2} approximates R^mix (an approximation, not a certified bound).
+# ---------------------------------------------------------------------------------------------
+
+def segment_second_moment(a, b, beta):
+    """E(W^2) for W with density prop. to exp(beta w) on [a, b]."""
+    if abs(beta) < _BETA0:
+        return (b**3 - a**3) / (3 * (b - a))
+    if beta < 0:
+        return segment_second_moment(-b, -a, -beta)
+    # divide by e^{beta b}: int w^2 e^{beta w} = e^{beta w}(w^2/beta - 2w/beta^2 + 2/beta^3)
+    h = lambda w: w * w / beta - 2 * w / beta**2 + 2 / beta**3
+    r = np.exp(-beta * (b - a))
+    return (h(b) - r * h(a)) / ((1 - r) / beta)
+
+
+def quantile_moment_ratio(q, beta, c):
+    """Q_q(|W|) / E(W^2)^{1/2} for density prop. to exp(beta w) on [c, c + 1] (scale-free)."""
+    a, b = c, c + 1.0
+    return latent_abs_quantile(q, a, b, beta) / np.sqrt(segment_second_moment(a, b, beta))
+
+
+def edge_constant(q, grid=(41, 41)):
+    """M_q by localization (one linear constraint E W^2 <= 1): grid over slope and position of a
+    unit segment, polished by Nelder-Mead. Point masses give ratio 1."""
+    best, arg = 1.0, None
+    for lb in np.linspace(-6, 4, grid[0]):
+        for c in np.linspace(-1.5, 0.5, grid[1]):
+            r = quantile_moment_ratio(q, np.exp(lb), c)
+            if r > best:
+                best, arg = r, (lb, c)
+    res = minimize(lambda t: -quantile_moment_ratio(q, np.exp(t[0]), t[1]), arg,
+                   method='Nelder-Mead', options={'xatol': 1e-10, 'fatol': 1e-13, 'maxiter': 4000})
+    return max(best, -res.fun)
+
+
+def edge_level(p):
+    """x_p: the largest x with pr(|x^{1/2} Z| <= 1) >= p."""
+    return 1 / (np.sqrt(2) * erfinv(p)) ** 2
+
+
+def variance_budget(p, xs, w=None):
+    """c* with mean_i pr(|(x_i + c*)^{1/2} Z| <= 1) = p; 0 if even c = 0 is infeasible."""
+    xs = np.atleast_1d(np.asarray(xs, float))
+    w = np.full(len(xs), 1 / len(xs)) if w is None else np.asarray(w, float) / np.sum(w)
+    f = lambda c: float(np.sum(w * (2 * ndtr(1 / np.sqrt(xs + c)) - 1))) - p
+    if f(0.0) <= 0:
+        return 0.0
+    hi = 1.0
+    while f(hi) > 0:
+        hi *= 2
+    return brentq(f, 0.0, hi, xtol=1e-15, rtol=1e-13)

@@ -39,7 +39,7 @@ def transition(q):
 
 def centred(q):
     ex = centred_exp_coefficient(q, 0.2, 2.0)
-    grid = [(bl, centred_exp_coefficient(q, bl, 1.0)) for bl in np.concatenate([np.arange(0.05, 8.0, 0.05), np.geomspace(8, 200, 60)])]
+    grid = [(bl, centred_exp_coefficient(q, bl, 1.0)) for bl in np.concatenate([np.arange(0.05, 8.0, 0.0025), np.geomspace(8, 200, 60)])]
     grid = [(bl, c) for bl, c in grid if np.isfinite(c)]
     bl, cbest = max(grid, key=lambda g: g[1])
     a, b = centred_exp_law(0.2, 2.0)

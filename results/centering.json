@@ -308,8 +308,8 @@
   },
   "0.9": {
    "example_beta0.2_ell2": 0.015654017718853688,
-   "best_beta_ell": 0.9000000000000001,
-   "best_coefficient": 0.06975863537294044,
+   "best_beta_ell": 0.9375000000000009,
+   "best_coefficient": 0.07474825904294172,
    "finite_noise_example": [
     {
      "sd": 0.03,
@@ -330,8 +330,8 @@
   },
   "0.95": {
    "example_beta0.2_ell2": NaN,
-   "best_beta_ell": 0.35000000000000003,
-   "best_coefficient": 0.013435428190937857,
+   "best_beta_ell": 0.35750000000000026,
+   "best_coefficient": 0.014000572766613175,
    "finite_noise_example": [
     {
      "sd": 0.03,

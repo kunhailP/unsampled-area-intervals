@@ -338,3 +338,16 @@ def test_centred_example_needs_order_x_widening():
     t = noisy_abs_quantile(0.9, a, b, 0.2, 0.005 ** 2)
     x = 0.005 ** 2 / t ** 2
     assert r0 > t and abs((r0 / t - 1) / x - C) < 1e-4
+
+
+def test_edge_constant_and_variance_budget():
+    """C59: M_q and the closed form M_q (x_p - x)^{1/2} against certified values near the edge."""
+    import pandas as pd
+    from uai.extremal import edge_constant, edge_level, variance_budget
+    M = edge_constant(0.9)
+    assert abs(M - 1.8532115) < 1e-6 and 1.7558 < M < 3.1623      # symmetric LC < LC < shape-free
+    assert abs(variance_budget(0.9, [0.3]) - (edge_level(0.9) - 0.3)) < 1e-12
+    c = pd.read_csv(ROOT / 'results' / 'certified_R.csv')
+    row = c[(c.p == 0.9) & (c.q == 0.9) & (np.abs(c.x - 0.3) < 1e-9)].iloc[0]
+    closed = M * np.sqrt(edge_level(0.9) - 0.3)
+    assert row.L <= closed * 1.001 and abs(row.L / closed - 1) < 1e-3
