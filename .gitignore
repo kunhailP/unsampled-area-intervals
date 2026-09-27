@@ -7,3 +7,6 @@ results/certified_ldc.csv
 paper/*.aux
 paper/*.log
 paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.thm
