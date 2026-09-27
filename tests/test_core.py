@@ -297,3 +297,44 @@ def test_shape_free_markov_is_valid_for_a_bimodal_law():
     noisy = ndtr((T - 1.5) / np.sqrt(.3)) - ndtr((-T - 1.5) / np.sqrt(.3))
     if noisy >= p_k:
         assert h >= 1.5
+
+
+def test_transition_constant_q90():
+    """C57: L_q(kappa) = sup{v(u) : k(u) >= kappa}; flat at c_q up to kappa*, then below U."""
+    from uai.extremal import tail_optimum, transition_constant, transition_upper
+    u, c, k = tail_optimum(0.9)
+    assert abs(c - 0.0190618170813) < 1e-10 and abs(k - 20.18233) < 1e-4
+    assert transition_constant(0.9, 20.0) == c
+    assert abs(transition_constant(0.9, 25.0) - 0.0173931846936) < 1e-9
+    kx = (1 - c * c) / (2 * c)                              # the two upper bounds cross
+    assert abs(transition_constant(0.9, kx) / transition_upper(0.9, kx) - 0.879055) < 1e-5
+    A = 1 - np.log(1 / 0.9)                                 # large kappa: L ~ A / (2 kappa)
+    assert abs(transition_constant(0.9, 1000.0) * 2000 / A - 1) < 1e-3
+
+
+def test_centred_sqrt_bound_on_segment_laws():
+    """C55: EW = mu, |mu| < t: Q_q(|W|) <= |mu| + sqrt((t - |mu|)^2 + D), t the noisy quantile."""
+    from uai.extremal import centred_exp_law, latent_abs_quantile, noisy_abs_quantile
+    for q in (0.5, 0.9, 0.97):
+        for beta in (-3, -0.3, 0.3, 3):
+            for ell in (0.5, 4.0):
+                a, b = centred_exp_law(beta, ell)
+                for mu in (0.0, 0.2):
+                    for sd in (0.05, 0.5):
+                        t = noisy_abs_quantile(q, a + mu, b + mu, beta, sd * sd)
+                        if t > mu:
+                            lat = latent_abs_quantile(q, a + mu, b + mu, beta)
+                            assert lat <= mu + np.sqrt((t - mu) ** 2 + sd * sd) + 1e-9
+
+
+def test_centred_example_needs_order_x_widening():
+    """C56: a mean-zero asymmetric law with widening (beta r0/2) tanh(beta r0) x + o(x) > 0."""
+    from uai.extremal import (centred_exp_coefficient, centred_exp_law, latent_abs_quantile,
+                              noisy_abs_quantile)
+    C = centred_exp_coefficient(0.9, 0.2, 2.0)
+    assert abs(C - 0.0156540177189) < 1e-10
+    a, b = centred_exp_law(0.2, 2.0)
+    r0 = latent_abs_quantile(0.9, a, b, 0.2)
+    t = noisy_abs_quantile(0.9, a, b, 0.2, 0.005 ** 2)
+    x = 0.005 ** 2 / t ** 2
+    assert r0 > t and abs((r0 / t - 1) / x - C) < 1e-4

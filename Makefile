@@ -15,6 +15,7 @@ quick:
 	$(PY) experiments/e03_lc_constants.py
 	$(PY) experiments/e05_exact_coverage.py
 	$(PY) experiments/e10_depth_allocation.py
+	$(PY) experiments/e32_centering.py
 
 # expensive searches: tens of minutes to hours depending on PROCS
 tables:

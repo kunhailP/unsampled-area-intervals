@@ -36,6 +36,7 @@ coverage of a fixed finite population are outside the theory (experiments only).
 | Level vs exact-kernel decomposition of the HetLDC gain | `e28` | at matched level the exact kernel is 0.3% shorter (C45) |
 | Estimated variances: kernel-domination and scale lemmas; rule S (pooled variance scale) and area-wise envelope H | `src/uai/estimated.py`, `e29`, `e30` | S keeps 62–84% of the known-variance gain (baseline-dependent); certification adds 0.14% (C50–C54); this H construction needs ~50+ d.f. per area |
 | Shape-free baseline (LatentCP-type Markov rule) | `procedures.shape_free_markov`, `e31` | the certified log-concave rule is 25–28% shorter than this baseline (C53) |
+| Centring: mean-offset radius bound Q_q(\|W\|) <= B + sqrt((t - B)^2 + D); Θ(x) widening for mean-zero asymmetric laws; the transition coefficient L_q(κ) when the mean is at least κ√x from the boundary | `extremal.transition_constant`, `e32`, `docs/THEORY_NOTE.md` 2C | proved; constants numerical (C55–C58) |
 
 ## Reproduce
 

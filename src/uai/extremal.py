@@ -295,10 +295,14 @@ def exp_tail_mass(b, u):
     return ndtr(-b) + np.exp(-u * b + u * u / 2 + log_ndtr(b - u))
 
 
+def exp_tail_root(p, u):
+    """b_u(p): the location at which the exponential tail of rate u has constraint value p."""
+    return brentq(lambda b: exp_tail_mass(b, u) - p, -60, 60 / u + 60, xtol=1e-14)
+
+
 def exp_tail_value(p, q, u):
     """q-quantile of the exponential tail of rate u that meets the constraint at level p."""
-    b = brentq(lambda b: exp_tail_mass(b, u) - p, -60, 60 / u + 60, xtol=1e-14)
-    return b - np.log(1 / q) / u
+    return exp_tail_root(p, u) - np.log(1 / q) / u
 
 
 def one_sided_constant(p, q, log_u=np.linspace(np.log(1e-3), np.log(200), 160)):
@@ -329,3 +333,69 @@ def split_constant(p, q, n=21):
                             options={'xatol': 1e-9})
         worst = max(worst, r.fun)
     return worst
+
+
+# ---------------------------------------------------------------------------------------------
+# Centring (THEORY_NOTE 2C, FINDINGS C55-C58). If |EW| <= 1 - kappa sqrt(x) and q > 1 - 1/e,
+#   lim_{x -> 0} {R_q^(kappa)(x) - 1} / sqrt(x) = L_q(kappa) = sup{ v(u) : k(u) >= kappa },
+#   v(u) = b_u - log(1/q)/u,  k(u) = 1/u - b_u,  b_u = b_u(q).
+# The exponential tail b_u - E, E ~ Exp(u), has mean -k(u); L_q(0) = c_q.
+# ---------------------------------------------------------------------------------------------
+
+def _tail_vk(q, u):
+    b = exp_tail_root(q, u)
+    return b - np.log(1 / q) / u, 1 / u - b
+
+
+def tail_optimum(q):
+    """(u*, c_q, kappa*): the maximiser of v, its value, and the mean distance k(u*)."""
+    r = minimize_scalar(lambda l: -_tail_vk(q, np.exp(l))[0], bounds=(np.log(1e-3), np.log(5)),
+                        method='bounded', options={'xatol': 1e-12})
+    u = float(np.exp(r.x))
+    v, k = _tail_vk(q, u)
+    return u, v, k
+
+
+def transition_constant(q, kappa, log_u=np.linspace(np.log(1e-6), np.log(50), 400)):
+    """L_q(kappa) = sup{ v(u) : k(u) >= kappa }, by a grid in u refined at every crossing of
+    k(u) = kappa. Equals c_q for kappa <= kappa*."""
+    u_star, c_q, k_star = tail_optimum(q)
+    if k_star >= kappa:
+        return c_q
+    us = np.exp(log_u)
+    vk = np.array([_tail_vk(q, u) for u in us])
+    ok = vk[:, 1] >= kappa
+    best = vk[ok, 0].max() if ok.any() else -np.inf
+    for i in np.flatnonzero(ok[:-1] != ok[1:]):
+        u0 = brentq(lambda u: _tail_vk(q, u)[1] - kappa, us[i], us[i + 1], xtol=1e-15, rtol=1e-14)
+        best = max(best, _tail_vk(q, u0)[0])
+    return best
+
+
+def transition_upper(q, kappa):
+    """U_q(kappa) = min{c_q, sqrt(kappa^2 + 1) - kappa}: Theorem 5 and the mean-offset bound."""
+    return min(tail_optimum(q)[1], np.sqrt(kappa * kappa + 1) - kappa)
+
+
+def centred_exp_law(beta, ell):
+    """(a, b): support of X - EX, X with density prop. to exp(beta X) on [0, ell], beta != 0."""
+    mean = ell / -np.expm1(-beta * ell) - 1 / beta
+    return -mean, ell - mean
+
+
+def centred_exp_coefficient(q, beta, ell):
+    """Leading coefficient C of {Q_q(|W|)/t - 1}/x for the mean-zero law of centred_exp_law, t the
+    noisy q-quantile of |W + sqrt(v) Z| and x = v/t^2 (fixed law, v -> 0). Needs +-r0 inside the
+    support, where f' = beta f. C = (beta r0 / 2) tanh(beta r0)."""
+    a, b = centred_exp_law(beta, ell)
+    r0 = latent_abs_quantile(q, a, b, beta)
+    if r0 >= min(-a, b):
+        return np.nan
+    return beta * r0 / 2 * np.tanh(beta * r0)
+
+
+def noisy_abs_quantile(q, a, b, beta, x):
+    """q-quantile of |W + sqrt(x) Z| for W with density prop. to exp(beta w) on [a, b]."""
+    mass = lambda t: noisy_cdf(t, a, b, beta, x) - noisy_cdf(-t, a, b, beta, x)
+    hi = max(abs(a), abs(b)) + 12 * np.sqrt(x)
+    return brentq(lambda t: mass(t) - q, 0.0, hi, xtol=1e-15, rtol=1e-15)
