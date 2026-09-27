@@ -351,3 +351,40 @@ def test_edge_constant_and_variance_budget():
     row = c[(c.p == 0.9) & (c.q == 0.9) & (np.abs(c.x - 0.3) < 1e-9)].iloc[0]
     closed = M * np.sqrt(edge_level(0.9) - 0.3)
     assert row.L <= closed * 1.001 and abs(row.L / closed - 1) < 1e-3
+
+
+def _periodic_bilc(phase, eps=0.05):
+    """Density (1 + eps cos(2 pi w + phase))/2 on (-1, 1), shifted to mean zero. Bi-log-concave
+    because sup|f'| = eps pi <= inf f^2 = (1 - eps)^2/4 (Duembgen et al. 2017, Theorem 1), but
+    neither log-concave nor unimodal. Returns the distribution function of W + s^{1/2} Z."""
+    from scipy.integrate import quad
+    from scipy.special import ndtr
+    f = lambda t: (1 + eps * np.cos(2 * np.pi * t + phase)) / 2
+    mu = quad(lambda t: t * f(t), -1, 1, epsabs=1e-13)[0]
+    def cdf(t, s):
+        if s == 0:
+            u = min(1.0, t + mu)
+            return 0.0 if u <= -1 else quad(f, -1, u, epsabs=1e-13)[0]
+        sd = np.sqrt(s)
+        cuts = sorted({-1.0, 1.0} | {v for v in (t + mu - 8 * sd, t + mu, t + mu + 8 * sd) if -1 < v < 1})
+        return sum(quad(lambda z: f(z) * ndtr((t + mu - z) / sd), a, b, epsabs=1e-13)[0]
+                   for a, b in zip(cuts, cuts[1:]))
+    return cdf
+
+
+def test_centred_bound_bilc_and_symmetric_counterexample():
+    """C62: the mean-zero bound Q_q(|W|)^2 <= Q_q(|W + s^{1/2} Z|)^2 + s on bi-log-concave laws that
+    are not log-concave; and a symmetric bi-log-concave law for which noise shrinks the quantile,
+    so symmetry alone (without unimodality) does not make noisy calibration conservative."""
+    from scipy.optimize import brentq
+    for phase in (0.0, np.pi / 2):
+        cdf = _periodic_bilc(phase)
+        for q in (0.3, 0.7, 0.9):
+            r0 = brentq(lambda r: cdf(r, 0) - cdf(-r, 0) - q, 0, 3, xtol=1e-13)
+            for s in (1e-3, 0.1, 1.0):
+                r = brentq(lambda r: cdf(r, s) - cdf(-r, s) - q, 0, 6, xtol=1e-13)
+                assert r * r + s - r0 * r0 >= -1e-10
+    cdf = _periodic_bilc(0.0)
+    r0 = brentq(lambda r: cdf(r, 0) - cdf(-r, 0) - 0.7, 0, 3, xtol=1e-13)
+    r = brentq(lambda r: cdf(r, 1e-5) - cdf(-r, 1e-5) - 0.7, 0, 3, xtol=1e-13)
+    assert r < r0 - 1e-7                                     # widening needed although symmetric
