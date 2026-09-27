@@ -193,7 +193,7 @@ def test_interval_constants_file():
 
 
 def test_min_variance_plugin_not_conservative():
-    """External review counterexample (checked in 192-bit balls): noisy coverage >= .9 under an
+    """Counterexample (checked in 192-bit balls): noisy coverage >= .9 under an
     equal mixture of N(0, 1e-8) and N(0, 5e-4), yet the min-variance radius 1 + c_.9 * 1e-4 covers
     W = b - Exp(2) with probability < .9."""
     from flint import arb, ctx
